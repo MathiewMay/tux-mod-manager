@@ -1,21 +1,45 @@
-<script setup>
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import HelloWorld from './components/HelloWorld.vue'
+<script>
+import { window } from '@tauri-apps/api'
+
+import SideBar from './components/SideBar.vue'
+import ModManager from './components/ModManager.vue'
+
+export default {
+  components: {
+    SideBar,
+    ModManager
+  }
+}
+
+setup()
+function setup() {
+  window.appWindow.setSize(new window.LogicalSize(1080, 720))
+  window.appWindow.setResizable(false)
+}
 </script>
 
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Hello Vue 3 + Vite" />
+  <SideBar />
+  <ModManager />
 </template>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+*{
+  -webkit-user-select: none;
+  user-select: none;
+}
+body {
+  margin: 0px;
+  background-color: #121212;
+}
+button {
+  border: none;
+  border-radius: 5px;
+  background-color: rgba(255,255,255,9%);
+  color: rgba(255,255,255,100%);
+}
+button:hover {
+  cursor: pointer;
+  background-color: rgba(255,255,255,12%);
 }
 </style>
