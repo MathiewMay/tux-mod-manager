@@ -1,23 +1,51 @@
 <script>
-import { fs } from '@tauri-apps/api'
+import { fs, path } from '@tauri-apps/api'
 
 export default {
   methods: {
+    async getDirEntrysFromPath(path){
+      let validEntrys = []
+      const pathEntrys = await fs.readDir(path)        
+      pathEntrys.forEach(entry => {
+        if(entry.children){
+          validEntrys.push(entry)
+        }
+      })
+      return validEntrys
+    },
+
+    async pathIsValid(path) {
+      const pathDirValid = await fs.readDir(path).catch((reason) => {return true})
+      if(pathDirValid != true){
+        return true
+      }else{
+        return false
+      }
+    },
+
     async scanGames() {
-      let steamGames = []
-      const mntDir = await fs.readDir('/mnt/')
-      for (var i=0; i<mntDir.length; i++){
-        const steamDirInvalid = await fs.readDir(mntDir[i].path+'/SteamLibrary/steamapps/common').catch((reason) => {return true})
-        if(steamDirInvalid != true){
-          const steamDir = await fs.readDir(mntDir[i].path+'/SteamLibrary/steamapps/common')        
-          steamDir.forEach(gameEntry => {
-            if(gameEntry.children){
-              steamGames.push(gameEntry)
-            }
-          })
+      let steamGamesEntry = []
+      const homeDir = await path.homeDir()
+      const steamLocalPath = homeDir+".local/share/Steam/steamapps/common/"
+      const steamFlatpakPath = homeDir+".var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/"
+      const steamPaths = [steamLocalPath,steamFlatpakPath]
+      for(var i=0; i<steamPaths.length; i++){
+        if(await this.pathIsValid(steamPaths[i])){
+          const localSteamPath = steamPaths[i]
+          const localGameEntrys = await this.getDirEntrysFromPath(localSteamPath)
+          steamGamesEntry = steamGamesEntry.concat(localGameEntrys)
         }
       }
-      console.log("Found "+steamGames.length+" steam games!")
+
+      const mntDir = await fs.readDir('/mnt/')
+      for(var i=0; i<mntDir.length; i++){
+        const mntSteamPath = mntDir[i].path+'/SteamLibrary/steamapps/common'
+        if(await this.pathIsValid(mntSteamPath)){
+          const mntGameEntrys = await this.getDirEntrysFromPath(mntSteamPath)
+          steamGamesEntry = steamGamesEntry.concat(mntGameEntrys)
+        }
+      }
+      console.log("Found "+steamGamesEntry.length+" steam games!")
     }
   }
 }
