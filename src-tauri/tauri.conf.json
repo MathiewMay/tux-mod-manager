@@ -12,7 +12,17 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": true,
+      "fs": {
+        "scope": ["/mnt/",
+                  "/mnt/*/SteamLibrary/steamapps/common/",
+                  "/mnt/*/SteamLibrary/steamapps/common/*",
+                  "$HOME/.local/share/Steam/steamapps/common/",
+                  "$HOME/.local/share/Steam/steamapps/common/*",
+                  "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/",
+                  "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/*"
+                 ]
+      }
     },
     "bundle": {
       "active": true,

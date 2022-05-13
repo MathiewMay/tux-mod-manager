@@ -1,9 +1,31 @@
 <script>
+import { fs } from '@tauri-apps/api'
+
+export default {
+  methods: {
+    async scanGames() {
+      let steamGames = []
+      const mntDir = await fs.readDir('/mnt/')
+      for (var i=0; i<mntDir.length; i++){
+        const steamDirInvalid = await fs.readDir(mntDir[i].path+'/SteamLibrary/steamapps/common').catch((reason) => {return true})
+        if(steamDirInvalid != true){
+          const steamDir = await fs.readDir(mntDir[i].path+'/SteamLibrary/steamapps/common')        
+          steamDir.forEach(gameEntry => {
+            if(gameEntry.children){
+              steamGames.push(gameEntry)
+            }
+          })
+        }
+      }
+      console.log("Found "+steamGames.length+" steam games!")
+    }
+  }
+}
 </script>
 
 <template>
 <div class="side-bar">
-  <button class="scan-games-button">Scan games</button>
+  <button class="scan-games-button" @click="scanGames()">Scan games</button>
   <div class="game-list">
     <button class="active">Game</button>
     <button>Game</button>
