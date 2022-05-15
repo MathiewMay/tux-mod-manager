@@ -11,9 +11,9 @@ export default {
     };
   },
   setup() {
-    const games = reactive([])
+    const games = reactive({})
     function resetGames(){
-      games.length = 0
+      Object.assign(games,{})
     }
     return {games, resetGames}
   },
@@ -64,12 +64,9 @@ export default {
       this.resetGames()
       steamGamesEntry.forEach(entry => {
         if(this.supported_games[entry.name]){
-          this.games.push({name: entry.name})
+          this.games[entry.name] = entry
         }
       })
-
-      console.log("Found "+steamGamesEntry.length+" steam games!")
-      console.log("Found "+this.games.length+" supported steam games!")
     }
   }
 }
@@ -79,9 +76,8 @@ export default {
 <div class="side-bar">
   <button class="scan-games-button" @click="scanGames()">Scan games</button>
   <div class="game-list">
-    <li v-for="(game, index) in games" :key="game.id">
-      <button v-if="index == 0" class="active">{{ game.name }}</button>
-      <button v-else>{{ game.name }}</button>
+    <li v-for="(game) in games" :key="game">
+      <button>{{ game.name }}</button>
     </li>
   </div>
   <div class="options-bottom">
