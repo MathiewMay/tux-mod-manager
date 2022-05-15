@@ -1,5 +1,4 @@
 <script>
-import { window } from '@tauri-apps/api'
 
 import SideBar from './components/SideBar.vue'
 import ModManager from './components/ModManager.vue'
@@ -11,11 +10,6 @@ export default {
   }
 }
 
-setup()
-function setup() {
-  window.appWindow.setSize(new window.LogicalSize(1080, 720))
-  window.appWindow.setResizable(false)
-}
 </script>
 
 <template>

@@ -1,0 +1,8 @@
+{
+  "Skyrim Special Edition": {
+    "binaryPath": "/SkyrimSE.exe"
+  },
+  "Cyberpunk 2077": {
+    "binaryPath": "/bin/x64/Cyberpynk2077.exe"
+  }
+}

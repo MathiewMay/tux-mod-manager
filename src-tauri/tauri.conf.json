@@ -39,7 +39,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "ca.mathiewmay.tmm",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -66,10 +66,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
-        "resizable": true,
+        "height": 720,
+        "resizable": false,
         "title": "Tauri Mod Manager",
-        "width": 800
+        "width": 1080
       }
     ]
   }
