@@ -1,7 +1,22 @@
 <script>
 import { fs, path } from '@tauri-apps/api'
+import { reactive } from '@vue/reactivity'
+
+import supportedGames from '../assets/supported-games.json'
 
 export default {
+  data() {
+    return {
+      supported_games: supportedGames,
+    };
+  },
+  setup() {
+    const games = reactive([])
+    function resetGames(){
+      games.length = 0
+    }
+    return {games, resetGames}
+  },
   methods: {
     async getDirEntrysFromPath(path){
       let validEntrys = []
@@ -45,7 +60,16 @@ export default {
           steamGamesEntry = steamGamesEntry.concat(mntGameEntrys)
         }
       }
+
+      this.resetGames()
+      steamGamesEntry.forEach(entry => {
+        if(this.supported_games[entry.name]){
+          this.games.push({name: entry.name})
+        }
+      })
+
       console.log("Found "+steamGamesEntry.length+" steam games!")
+      console.log("Found "+this.games.length+" supported steam games!")
     }
   }
 }
@@ -55,34 +79,10 @@ export default {
 <div class="side-bar">
   <button class="scan-games-button" @click="scanGames()">Scan games</button>
   <div class="game-list">
-    <button class="active">Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
-    <button>Game</button>
+    <li v-for="(game, index) in games" :key="game.id">
+      <button v-if="index == 0" class="active">{{ game.name }}</button>
+      <button v-else>{{ game.name }}</button>
+    </li>
   </div>
   <div class="options-bottom">
     <button class="settings-button">S</button>
@@ -118,6 +118,9 @@ export default {
   max-height: 596px;
   overflow: hidden;
   overflow-y: scroll
+}
+.game-list li {
+  list-style: none;
 }
 .game-list button {
   text-align: left;
