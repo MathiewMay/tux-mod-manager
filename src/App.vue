@@ -3,7 +3,25 @@
 import SideBar from './components/SideBar.vue'
 import ModManager from './components/ModManager.vue'
 
+import supportedGames from './assets/supported-games.json'
+import { reactive, ref } from '@vue/reactivity'
+
 export default {
+  data() {
+    return {
+      supported_games: supportedGames,
+    };
+  },
+  setup() {
+    const selected_game = ref({})
+    return {selected_game}
+  },
+  methods: {
+    gameSelected(gameEntry) {
+      this.selected_game = gameEntry
+      console.log(this.selected_game)
+    }
+  },
   components: {
     SideBar,
     ModManager
@@ -13,8 +31,8 @@ export default {
 </script>
 
 <template>
-  <SideBar />
-  <ModManager />
+  <SideBar @game-selected="gameSelected"/>
+  <ModManager v-if="selected_game.name"/>
 </template>
 
 <style>

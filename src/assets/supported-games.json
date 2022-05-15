@@ -4,5 +4,8 @@
   },
   "Cyberpunk 2077": {
     "binaryPath": "/bin/x64/Cyberpunk2077.exe"
+  },
+  "Risk of Rain 2": {
+    "binaryPath": "/Risk of Rain 2.exe"
   }
 }

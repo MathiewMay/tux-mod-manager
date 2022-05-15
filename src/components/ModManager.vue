@@ -1,9 +1,9 @@
 <script>
-import ModList from './ModList.vue'
+import Mod from './Mod.vue'
 
 export default {
   components: {
-    ModList,
+    Mod,
   }
 }
 </script>
@@ -11,7 +11,9 @@ export default {
 <template>
 <div class="mod-manager">
   <div class="mod-order">
-    <ModList />
+    <li class="mod-list">
+      <Mod />
+    </li>
   </div>
   <div class="separator-bottom"></div>
 </div>
@@ -27,6 +29,10 @@ export default {
   max-height: 500px;
   overflow: hidden;
   overflow-y: scroll;
+}
+.mod-list { 
+  margin: 5px;
+  list-style: none;
 }
 .separator-bottom{
     color: black;

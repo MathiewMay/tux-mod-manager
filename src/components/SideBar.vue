@@ -67,6 +67,16 @@ export default {
           this.games[entry.name] = entry
         }
       })
+    },
+
+    selectGame(e, gameEntry){
+      const gameButton = e.target 
+      const buttonList = this.$el.querySelectorAll('.game-list li button')
+      buttonList.forEach(elem => {
+        elem.className = ""
+      })
+      gameButton.className = "active"
+      this.$emit('game-selected', gameEntry)
     }
   }
 }
@@ -77,7 +87,7 @@ export default {
   <button class="scan-games-button" @click="scanGames()">Scan games</button>
   <div class="game-list">
     <li v-for="(game) in games" :key="game">
-      <button>{{ game.name }}</button>
+      <button @click="selectGame($event, game)">{{ game.name }}</button>
     </li>
   </div>
   <div class="options-bottom">
