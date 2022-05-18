@@ -20,7 +20,9 @@
                   "$HOME/.local/share/Steam/steamapps/common/",
                   "$HOME/.local/share/Steam/steamapps/common/*",
                   "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/",
-                  "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/*"
+                  "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/*",
+                  "$APP",
+                  "$APP/*"
                  ]
       }
     },

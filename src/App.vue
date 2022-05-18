@@ -1,10 +1,30 @@
 <script>
 
+import { fs, path } from '@tauri-apps/api'
+
 import SideBar from './components/SideBar.vue'
 import ModManager from './components/ModManager.vue'
 
 import supportedGames from './assets/supported-games.json'
-import { reactive, ref } from '@vue/reactivity'
+import { ref } from '@vue/reactivity'
+
+appPathCheck()
+async function appPathCheck() {
+  const appPath = await path.appDir()
+  if(!await pathExists(appPath))
+    await fs.createDir(appPath)
+    if(!await pathExists(appPath+"games"))
+      await fs.createDir(appPath+"games")
+}
+
+async function pathExists(path) {
+  const pathDirExists = await fs.readDir(path).catch((reason) => {return true})
+  if(pathDirExists != true){
+    return true
+  }else{
+    return false
+  }
+}
 
 export default {
   data() {
@@ -17,9 +37,23 @@ export default {
     return {selected_game}
   },
   methods: {
-    gameSelected(gameEntry) {
+    async pathExists(path) {
+      const pathDirExists = await fs.readDir(path).catch((reason) => {return true})
+      if(pathDirExists != true){
+        return true
+      }else{
+        return false
+      }
+    },
+
+    async gameSelected(gameEntry) {
+      const appDir = await path.appDir()
+      const appGameDir = appDir+"games/"+gameEntry.name
       this.selected_game = gameEntry
-      console.log(this.selected_game)
+      if(!await pathExists(appGameDir))
+        fs.createDir(appGameDir)
+        if(!await pathExists(appGameDir+"/mods"))
+        fs.createDir(appGameDir+"/mods")
     }
   },
   components: {
@@ -32,7 +66,7 @@ export default {
 
 <template>
   <SideBar @game-selected="gameSelected"/>
-  <ModManager v-if="selected_game.name"/>
+  <ModManager v-if="selected_game.name" :selected_game="selected_game"/>
 </template>
 
 <style>

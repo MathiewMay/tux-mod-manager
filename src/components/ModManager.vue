@@ -1,9 +1,12 @@
 <script>
 import Mod from './Mod.vue'
+import ModInstaller from './ModInstaller.vue'
 
 export default {
+  props: ['selected_game'],
   components: {
     Mod,
+    ModInstaller
   }
 }
 </script>
@@ -16,6 +19,9 @@ export default {
     </li>
   </div>
   <div class="separator-bottom"></div>
+  <div class="mod-install">
+      <ModInstaller :selected_game="selected_game"/>
+  </div>
 </div>
 </template>
 
@@ -42,5 +48,9 @@ export default {
     position: absolute;
     margin-left: 1px;
     top: 500px;
+}
+.mod-install {
+  position: absolute;
+  top: 500px;
 }
 </style>
