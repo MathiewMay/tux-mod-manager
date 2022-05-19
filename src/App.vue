@@ -1,32 +1,25 @@
 <script>
-
 import { fs, path } from '@tauri-apps/api'
+import { ref } from '@vue/reactivity'
 
 import SideBar from './components/SideBar.vue'
 import ModManager from './components/ModManager.vue'
 
 import supportedGames from './assets/supported-games.json'
-import { ref } from '@vue/reactivity'
 
-appPathCheck()
-async function appPathCheck() {
+import Mixins from './Mixins';
+
+appDirectoryCheck()
+async function appDirectoryCheck() {
   const appPath = await path.appDir()
-  if(!await pathExists(appPath))
+  if(!await Mixins.methods.pathExists(appPath))
     await fs.createDir(appPath)
-    if(!await pathExists(appPath+"games"))
+    if(!await Mixins.methods.pathExists(appPath+"games"))
       await fs.createDir(appPath+"games")
 }
 
-async function pathExists(path) {
-  const pathDirExists = await fs.readDir(path).catch((reason) => {return true})
-  if(pathDirExists != true){
-    return true
-  }else{
-    return false
-  }
-}
-
 export default {
+  mixins: [Mixins],
   data() {
     return {
       supported_games: supportedGames,
@@ -37,22 +30,13 @@ export default {
     return {selected_game}
   },
   methods: {
-    async pathExists(path) {
-      const pathDirExists = await fs.readDir(path).catch((reason) => {return true})
-      if(pathDirExists != true){
-        return true
-      }else{
-        return false
-      }
-    },
-
     async gameSelected(gameEntry) {
       const appDir = await path.appDir()
       const appGameDir = appDir+"games/"+gameEntry.name
       this.selected_game = gameEntry
-      if(!await pathExists(appGameDir))
+      if(!await Mixins.methods.pathExists(appGameDir))
         fs.createDir(appGameDir)
-        if(!await pathExists(appGameDir+"/mods"))
+        if(!await Mixins.methods.pathExists(appGameDir+"/mods"))
         fs.createDir(appGameDir+"/mods")
     }
   },
@@ -65,7 +49,7 @@ export default {
 </script>
 
 <template>
-  <SideBar @game-selected="gameSelected"/>
+  <SideBar @on-game-selected="gameSelected"/>
   <ModManager v-if="selected_game.name" :selected_game="selected_game"/>
 </template>
 

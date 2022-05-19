@@ -4,7 +4,10 @@ import { reactive } from '@vue/reactivity'
 
 import supportedGames from '../assets/supported-games.json'
 
+import Mixins from '../Mixins';
+
 export default {
+  mixins: [Mixins],
   data() {
     return {
       supported_games: supportedGames,
@@ -29,15 +32,6 @@ export default {
       return validEntrys
     },
 
-    async pathIsValid(path) {
-      const pathDirValid = await fs.readDir(path).catch((reason) => {return true})
-      if(pathDirValid != true){
-        return true
-      }else{
-        return false
-      }
-    },
-
     async scanGames() {
       let steamGamesEntry = []
       const homeDir = await path.homeDir()
@@ -45,7 +39,7 @@ export default {
       const steamFlatpakPath = homeDir+".var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/"
       const steamPaths = [steamLocalPath,steamFlatpakPath]
       for(var i=0; i<steamPaths.length; i++){
-        if(await this.pathIsValid(steamPaths[i])){
+        if(await Mixins.methods.pathExists(steamPaths[i])){
           const localSteamPath = steamPaths[i]
           const localGameEntrys = await this.getDirEntrysFromPath(localSteamPath)
           steamGamesEntry = steamGamesEntry.concat(localGameEntrys)
@@ -55,7 +49,7 @@ export default {
       const mntDir = await fs.readDir('/mnt/')
       for(var i=0; i<mntDir.length; i++){
         const mntSteamPath = mntDir[i].path+'/SteamLibrary/steamapps/common'
-        if(await this.pathIsValid(mntSteamPath)){
+        if(await Mixins.methods.pathExists(mntSteamPath)){
           const mntGameEntrys = await this.getDirEntrysFromPath(mntSteamPath)
           steamGamesEntry = steamGamesEntry.concat(mntGameEntrys)
         }
@@ -76,7 +70,7 @@ export default {
         elem.className = ""
       })
       gameButton.className = "active"
-      this.$emit('game-selected', gameEntry)
+      this.$emit('on-game-selected', gameEntry)
     }
   }
 }
