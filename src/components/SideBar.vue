@@ -2,15 +2,14 @@
 import { fs, path } from '@tauri-apps/api'
 import { reactive } from '@vue/reactivity'
 
-import supportedGames from '../assets/supported-games.json'
-
 import Mixins from '../Mixins';
+import supported_games_json from '../assets/supported-games.json'
 
 export default {
   mixins: [Mixins],
   data() {
     return {
-      supported_games: supportedGames,
+      supported_games: supported_games_json,
     };
   },
   setup() {
@@ -21,7 +20,7 @@ export default {
     return {games, resetGames}
   },
   methods: {
-    async getDirEntrysFromPath(path){
+    async getDirectorysFromPath(path){
       let validEntrys = []
       const pathEntrys = await fs.readDir(path)        
       pathEntrys.forEach(entry => {
@@ -41,7 +40,7 @@ export default {
       for(var i=0; i<steamPaths.length; i++){
         if(await Mixins.methods.pathExists(steamPaths[i])){
           const localSteamPath = steamPaths[i]
-          const localGameEntrys = await this.getDirEntrysFromPath(localSteamPath)
+          const localGameEntrys = await this.getDirectorysFromPath(localSteamPath)
           steamGamesEntry = steamGamesEntry.concat(localGameEntrys)
         }
       }
@@ -50,7 +49,7 @@ export default {
       for(var i=0; i<mntDir.length; i++){
         const mntSteamPath = mntDir[i].path+'/SteamLibrary/steamapps/common'
         if(await Mixins.methods.pathExists(mntSteamPath)){
-          const mntGameEntrys = await this.getDirEntrysFromPath(mntSteamPath)
+          const mntGameEntrys = await this.getDirectorysFromPath(mntSteamPath)
           steamGamesEntry = steamGamesEntry.concat(mntGameEntrys)
         }
       }
@@ -63,7 +62,7 @@ export default {
       })
     },
 
-    selectGame(e, gameEntry){
+    selectNewGame(e, gameEntry){
       const gameButton = e.target 
       const buttonList = this.$el.querySelectorAll('.game-list li button')
       buttonList.forEach(elem => {
@@ -81,7 +80,7 @@ export default {
   <button class="scan-games-button" @click="scanGames()">Scan games</button>
   <div class="game-list">
     <li v-for="(game) in games" :key="game">
-      <button @click="selectGame($event, game)">{{ game.name }}</button>
+      <button @click="selectNewGame($event, game)">{{ game.name }}</button>
     </li>
   </div>
   <div class="options-bottom">

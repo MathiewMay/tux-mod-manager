@@ -5,9 +5,8 @@ import { ref } from '@vue/reactivity'
 import SideBar from './components/SideBar.vue'
 import ModManager from './components/ModManager.vue'
 
-import supportedGames from './assets/supported-games.json'
-
 import Mixins from './Mixins';
+import supported_games_json from './assets/supported-games.json'
 
 appDirectoryCheck()
 async function appDirectoryCheck() {
@@ -22,7 +21,7 @@ export default {
   mixins: [Mixins],
   data() {
     return {
-      supported_games: supportedGames,
+      supported_games: supported_games_json,
     };
   },
   setup() {
@@ -30,7 +29,7 @@ export default {
     return {selected_game}
   },
   methods: {
-    async gameSelected(gameEntry) {
+    async newGameSelected(gameEntry) {
       const appDir = await path.appDir()
       const appGameDir = appDir+"games/"+gameEntry.name
       this.selected_game = gameEntry
@@ -49,7 +48,7 @@ export default {
 </script>
 
 <template>
-  <SideBar @on-game-selected="gameSelected"/>
+  <SideBar @on-game-selected="newGameSelected"/>
   <ModManager v-if="selected_game.name" :selected_game="selected_game"/>
 </template>
 
