@@ -26,17 +26,26 @@ export default {
   },
   setup() {
     const selected_game = ref({})
-    return {selected_game}
+    function resetSelectedGame(){
+      selected_game.value = {}
+    }
+    return {selected_game, resetSelectedGame}
   },
   methods: {
+    newScanGames(){
+      this.resetSelectedGame()
+    },
     async newGameSelected(gameEntry) {
       const appDir = await path.appDir()
       const appGameDir = appDir+"games/"+gameEntry.name
       this.selected_game = gameEntry
-      if(!await Mixins.methods.pathExists(appGameDir))
+      if(!await Mixins.methods.pathExists(appGameDir)){
         fs.createDir(appGameDir)
-        if(!await Mixins.methods.pathExists(appGameDir+"/mods"))
-        fs.createDir(appGameDir+"/mods")
+        if(!await Mixins.methods.pathExists(appGameDir+"/mods")){
+          fs.createDir(appGameDir+"/mods")
+        }
+      }
+      this.$refs.mod_manager.refreshModList()
     }
   },
   components: {
@@ -48,8 +57,8 @@ export default {
 </script>
 
 <template>
-  <SideBar @on-game-selected="newGameSelected"/>
-  <ModManager v-if="selected_game.name" :selected_game="selected_game"/>
+  <SideBar @on-game-selected="newGameSelected" @on-scan-games="newScanGames"/>
+  <ModManager v-if="selected_game.name" ref="mod_manager" :selected_game="selected_game"/>
 </template>
 
 <style>

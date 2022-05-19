@@ -1,10 +1,13 @@
 <script>
+export default {
+  props: ['mod_name'],
+}
 </script>
 
 <template>
 <div class="mod">
   <input class="mod-enabled" type="checkbox">
-  <p class="mod-name">Street Vendors Mod</p>
+  <p class="mod-name">{{ mod_name }}</p>
   <div class="mod-options">
     <button class="remove-button">Remove</button>
   </div>

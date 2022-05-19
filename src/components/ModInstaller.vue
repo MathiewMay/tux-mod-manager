@@ -8,9 +8,20 @@ export default {
     async installMod() {
       const appDir = await path.appDir()
       dialog.open().then((file) => {
-        const fileName = file.split('/')[file.split('/').length-1]
-        const appGameDir = appDir+"games/"+this.selected_game.name+"/mods/"+fileName.split('.')[0]
-        invoke('uncompress', { filePath: file, targetPath: appGameDir })
+        const fileFullName = file.split('/')[file.split('/').length-1]
+        const fileExtension = fileFullName.split('.')[fileFullName.split('.').length-1]
+        const fileName = fileFullName.split('.')[0]
+        if(fileExtension == "zip" || fileExtension == "rar" || fileExtension == "7z"){
+          const appGameDir = appDir+"games/"+this.selected_game.name+"/mods/"+fileName
+          console.log("Installing "+fileName+"...")
+          invoke('uncompress', { filePath: file, targetPath: appGameDir }).then((result) => {
+            this.$emit('on-mod-installed', fileName)
+            console.log("Mod Installed...")
+          })
+        }else{
+          dialog.message("File format mismatch.")
+        }
+
       })
     }
   }

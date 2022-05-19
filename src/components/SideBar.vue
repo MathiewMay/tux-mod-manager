@@ -14,23 +14,9 @@ export default {
   },
   setup() {
     const games = reactive({})
-    function resetGames(){
-      Object.assign(games,{})
-    }
-    return {games, resetGames}
+    return {games}
   },
   methods: {
-    async getDirectorysFromPath(path){
-      let validEntrys = []
-      const pathEntrys = await fs.readDir(path)        
-      pathEntrys.forEach(entry => {
-        if(entry.children){
-          validEntrys.push(entry)
-        }
-      })
-      return validEntrys
-    },
-
     async scanGames() {
       let steamGamesEntry = []
       const homeDir = await path.homeDir()
@@ -40,7 +26,7 @@ export default {
       for(var i=0; i<steamPaths.length; i++){
         if(await Mixins.methods.pathExists(steamPaths[i])){
           const localSteamPath = steamPaths[i]
-          const localGameEntrys = await this.getDirectorysFromPath(localSteamPath)
+          const localGameEntrys = await Mixins.methods.getDirectorysFromPath(localSteamPath)
           steamGamesEntry = steamGamesEntry.concat(localGameEntrys)
         }
       }
@@ -49,17 +35,17 @@ export default {
       for(var i=0; i<mntDir.length; i++){
         const mntSteamPath = mntDir[i].path+'/SteamLibrary/steamapps/common'
         if(await Mixins.methods.pathExists(mntSteamPath)){
-          const mntGameEntrys = await this.getDirectorysFromPath(mntSteamPath)
+          const mntGameEntrys = await Mixins.methods.getDirectorysFromPath(mntSteamPath)
           steamGamesEntry = steamGamesEntry.concat(mntGameEntrys)
         }
       }
 
-      this.resetGames()
       steamGamesEntry.forEach(entry => {
         if(this.supported_games[entry.name]){
           this.games[entry.name] = entry
         }
       })
+      this.$emit('on-scan-games')
     },
 
     selectNewGame(e, gameEntry){
@@ -84,7 +70,7 @@ export default {
     </li>
   </div>
   <div class="options-bottom">
-    <button class="settings-button">S</button>
+    <button class="settings-button">···</button>
     <button class="deploy-button">Deploy</button>
   </div>
   <div class="separator-right"></div>
@@ -146,6 +132,10 @@ export default {
 .options-bottom button {
   height: 35px;
   margin-bottom: 4px;
+  font-size: 16px
+}
+.options-bottom i {
+  font-size: 16px;
 }
 .settings-button {
   width: 35px;

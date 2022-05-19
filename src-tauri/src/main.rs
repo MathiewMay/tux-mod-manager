@@ -15,7 +15,7 @@ fn main() {
 }
 
 #[tauri::command]
-fn uncompress(file_path: String, target_path: String) {
+async fn uncompress(file_path: String, target_path: String) {
   let mut source_file = File::open(file_path).unwrap();
   let target = Path::new(&target_path);
   uncompress_archive(&mut source_file,&target, Ownership::Ignore).unwrap();
