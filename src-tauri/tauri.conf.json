@@ -7,7 +7,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "tauri-mod-manager",
+    "productName": "tux-mod-manager",
     "version": "0.1.0"
   },
   "tauri": {
@@ -70,7 +70,7 @@
         "fullscreen": false,
         "height": 720,
         "resizable": false,
-        "title": "Tauri Mod Manager",
+        "title": "Tux Mod Manager",
         "width": 1080
       }
     ]
