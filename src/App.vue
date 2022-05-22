@@ -35,6 +35,9 @@ export default {
     newScanGames(){
       this.resetSelectedGame()
     },
+    deployMods(){
+      this.$refs.mod_manager.deployMods()
+    },
     async newGameSelected(gameEntry) {
       const appDir = await path.appDir()
       const appGameDir = appDir+"games/"+gameEntry.name
@@ -57,7 +60,7 @@ export default {
 </script>
 
 <template>
-  <SideBar @on-game-selected="newGameSelected" @on-scan-games="newScanGames"/>
+  <SideBar @on-game-selected="newGameSelected" @on-scan-games="newScanGames" @deploying-mods="deployMods()"/>
   <ModManager v-if="selected_game.name" ref="mod_manager" :selected_game="selected_game"/>
 </template>
 

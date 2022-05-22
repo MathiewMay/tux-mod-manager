@@ -2,16 +2,19 @@
   "Skyrim Special Edition": {
     "binaryPath": "/SkyrimSE.exe",
     "extensionsPath": {
-      "**": "/Data"
+      "**": "/Data/"
     }
   },
   "Cyberpunk 2077": {
-    "binaryPath": "/bin/x64/Cyberpunk2077.exe"
+    "binaryPath": "/bin/x64/Cyberpunk2077.exe",
+    "extensionsPath": {
+      "**": ""
+    }
   },
   "Risk of Rain 2": {
     "binaryPath": "/Risk of Rain 2.exe",
     "extensionsPath": {
-      "**": "/Mods"
+      "**": "Mods/"
     }
   }
 }

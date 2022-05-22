@@ -1,12 +1,12 @@
 <script>
 export default {
-  props: ['mod_name'],
+  props: ['mod_name', 'tmm_mod_path'],
 }
 </script>
 
 <template>
 <div class="mod">
-  <input class="mod-enabled" type="checkbox">
+  <input ref="mod_enabled" class="mod-enabled" type="checkbox">
   <p class="mod-name">{{ mod_name }}</p>
   <div class="mod-options">
     <button class="remove-button">Remove</button>

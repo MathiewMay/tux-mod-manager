@@ -48,6 +48,9 @@ export default {
       this.$emit('on-scan-games')
     },
 
+    sendDeployMods() {
+      this.$emit('deploying-mods')
+    },
     selectNewGame(e, gameEntry){
       const gameButton = e.target 
       const buttonList = this.$el.querySelectorAll('.game-list li button')
@@ -71,7 +74,7 @@ export default {
   </div>
   <div class="options-bottom">
     <button class="settings-button">···</button>
-    <button class="deploy-button">Deploy</button>
+    <button class="deploy-button" @click="sendDeployMods()">Deploy</button>
   </div>
   <div class="separator-right"></div>
 </div>
