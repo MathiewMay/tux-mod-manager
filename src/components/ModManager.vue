@@ -39,39 +39,43 @@ export default {
       })
     },
     async deployMods(){
-      const modList = this.$refs.mod_ref
-      for(var i=0; i<modList.length; i++){
-        const mod = modList[i]
-        if(mod.$refs.mod_enabled.checked)
-          this.copyDir(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
-        else
-          this.removeMod(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
+      if(this.$refs.mod_ref != undefined){
+        const modList = this.$refs.mod_ref
+        for(var i=0; i<modList.length; i++){
+          const mod = modList[i]
+          if(mod.$refs.mod_enabled.checked)
+            this.copyDir(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
+          else
+            this.removeMod(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
+        }
       }
     },
     async copyDir(from_path, to_path){
       const fromDir = await fs.readDir(from_path)
-      fromDir.forEach(file => {
-        if(!file.children){
-          fs.copyFile(file.path, to_path+file.name)
-        }else{
-          if(!Mixins.methods.pathExists(to_path+file.name))
-            console.log(to_path+file.name)
+      for(var i=0; i<fromDir.length; i++){
+        const file = fromDir[i]
+        if(!await Mixins.methods.pathExists(to_path+file.name)){
+          if(!file.children){
+            fs.copyFile(file.path, to_path+file.name)
+          }else{
             fs.createDir(to_path+file.name)
-          this.copyDir(file.path, to_path+file.name+"/")
+            this.copyDir(file.path, to_path+file.name+"/")
+          }
         }
-      })
+      }
     },
     async removeMod(tmm_path, game_path){
       const modDir = await fs.readDir(tmm_path)
-      modDir.forEach(file => {
-        if(Mixins.methods.pathExists(game_path+file.name)){
+      for(var i=0; i<modDir.length; i++){
+        const file = modDir[i]
+        if(await Mixins.methods.pathExists(game_path+file.name)){
           if(!file.children){
             fs.removeFile(game_path+file.name)
           }else{
             this.removeMod(file.path, game_path+file.name+"/")
           }
         }
-      })
+      }
     }
   }
 }

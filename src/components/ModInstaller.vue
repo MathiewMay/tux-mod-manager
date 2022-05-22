@@ -13,10 +13,8 @@ export default {
         const fileName = fileFullName.split('.')[0]
         if(fileExtension == "zip" || fileExtension == "rar" || fileExtension == "7z"){
           const appGameDir = appDir+"games/"+this.selected_game.name+"/mods/"+fileName
-          console.log("Installing "+fileName+"...")
           invoke('uncompress', { filePath: file, targetPath: appGameDir }).then((result) => {
             this.$emit('on-mod-installed', fileName)
-            console.log("Mod Installed...")
           })
         }else{
           dialog.message("File format mismatch.")

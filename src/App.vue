@@ -36,7 +36,8 @@ export default {
       this.resetSelectedGame()
     },
     deployMods(){
-      this.$refs.mod_manager.deployMods()
+      if(this.$refs.mod_manager != undefined)
+        this.$refs.mod_manager.deployMods()
     },
     async newGameSelected(gameEntry) {
       const appDir = await path.appDir()
