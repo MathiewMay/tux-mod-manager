@@ -1,6 +1,7 @@
 <script>
 import { fs, path } from '@tauri-apps/api'
 import { reactive } from '@vue/reactivity'
+import { invoke } from '@tauri-apps/api/tauri'
 
 import Mixins from '../Mixins';
 import supported_games_json from '../assets/supported-games.json'
