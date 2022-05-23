@@ -38,6 +38,7 @@ export default {
         this.mods[modEntry.name] = modEntry
       })
     },
+
     async deployMods(){
       if(this.$refs.mod_ref != undefined){
         const modList = this.$refs.mod_ref
@@ -50,6 +51,7 @@ export default {
         }
       }
     },
+
     async copyDir(from_path, to_path){
       const fromDir = await fs.readDir(from_path)
       for(var i=0; i<fromDir.length; i++){
@@ -64,6 +66,7 @@ export default {
         }
       }
     },
+    
     async removeMod(tmm_path, game_path){
       const modDir = await fs.readDir(tmm_path)
       for(var i=0; i<modDir.length; i++){
