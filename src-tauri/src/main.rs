@@ -12,7 +12,7 @@ use compress_tools::*;
 fn main() {
   mod_manager::scan_games();
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![uncompress, mod_manager::scan_games, mod_manager::deploy_mod])
+    .invoke_handler(tauri::generate_handler![uncompress, mod_manager::scan_games, mod_manager::deploy_mod, mod_manager::make_stage_directory])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

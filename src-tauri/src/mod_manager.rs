@@ -1,4 +1,4 @@
-use std::{path::PathBuf};
+use std::{path::PathBuf, fs};
 use serde::{Deserialize, Serialize};
 use dirs;
 
@@ -58,6 +58,15 @@ pub(crate) fn scan_games() -> Vec<String> {
   }
 
   steam_games.into()
+}
+#[tauri::command]
+pub(crate) fn make_stage_directory() {
+  let home_dir = dirs::home_dir().unwrap();
+  let stage_dir = home_dir.join(".config/tmm_stage/games");
+  if !stage_dir.exists() {
+    fs::create_dir(stage_dir).unwrap();
+  }
+  
 }
 fn get_directories(path: PathBuf) -> Vec<PathBuf> {
   let mut directories: Vec<PathBuf> = Vec::new();

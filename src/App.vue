@@ -1,6 +1,7 @@
 <script>
 import { fs, path } from '@tauri-apps/api'
 import { ref } from '@vue/reactivity'
+import { invoke } from '@tauri-apps/api/tauri'
 
 import SideBar from './components/SideBar.vue'
 import ModManager from './components/ModManager.vue'
@@ -8,14 +9,7 @@ import ModManager from './components/ModManager.vue'
 import Mixins from './Mixins';
 import supported_games_json from './assets/supported-games.json'
 
-appDirectoryCheck()
-async function appDirectoryCheck() {
-  const appPath = await path.appDir()
-  if(!await Mixins.methods.pathExists(appPath))
-    await fs.createDir(appPath)
-    if(!await Mixins.methods.pathExists(appPath+"games"))
-      await fs.createDir(appPath+"games")
-}
+invoke('make_stage_directory');
 
 export default {
   mixins: [Mixins],
