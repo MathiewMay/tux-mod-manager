@@ -1,5 +1,5 @@
 <script>
-import { fs, path, dialog } from '@tauri-apps/api'
+import { path, dialog } from '@tauri-apps/api'
 import { invoke } from '@tauri-apps/api/tauri'
 
 export default {

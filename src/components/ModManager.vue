@@ -1,6 +1,7 @@
 <script>
-import { fs, path } from '@tauri-apps/api'
+import { path } from '@tauri-apps/api'
 import { ref } from '@vue/reactivity'
+import { invoke } from '@tauri-apps/api/tauri'
 
 import Mod from './Mod.vue'
 import ModInstaller from './ModInstaller.vue'
@@ -38,18 +39,18 @@ export default {
         this.mods[modEntry.name] = modEntry
       })
     },
+
     async deployMods(){
       if(this.$refs.mod_ref != undefined){
         const modList = this.$refs.mod_ref
         for(var i=0; i<modList.length; i++){
           const mod = modList[i]
-          if(mod.$refs.mod_enabled.checked)
-            this.copyDir(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
-          else
-            this.removeMod(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
+          const json = {path: mod.tmm_mod_path}      
+          invoke('deploy_mod', { mod: JSON.stringify(json), deploy: mod.$refs.mod_enabled.checked })
         }
       }
     },
+
     async copyDir(from_path, to_path){
       const fromDir = await fs.readDir(from_path)
       for(var i=0; i<fromDir.length; i++){
@@ -64,6 +65,7 @@ export default {
         }
       }
     },
+
     async removeMod(tmm_path, game_path){
       const modDir = await fs.readDir(tmm_path)
       for(var i=0; i<modDir.length; i++){

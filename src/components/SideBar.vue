@@ -1,5 +1,4 @@
 <script>
-import { fs, path } from '@tauri-apps/api'
 import { reactive } from '@vue/reactivity'
 import { invoke } from '@tauri-apps/api/tauri'
 
@@ -19,39 +18,22 @@ export default {
   },
   methods: {
     async scanGames() {
-      let steamGamesEntry = []
-      const homeDir = await path.homeDir()
-      const steamLocalPath = homeDir+".local/share/Steam/steamapps/common/"
-      const steamFlatpakPath = homeDir+".var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/"
-      const steamPaths = [steamLocalPath,steamFlatpakPath]
-      for(var i=0; i<steamPaths.length; i++){
-        if(await Mixins.methods.pathExists(steamPaths[i])){
-          const localSteamPath = steamPaths[i]
-          const localGameEntrys = await Mixins.methods.getDirectorysFromPath(localSteamPath)
-          steamGamesEntry = steamGamesEntry.concat(localGameEntrys)
-        }
-      }
-
-      const mntDir = await fs.readDir('/mnt/')
-      for(var i=0; i<mntDir.length; i++){
-        const mntSteamPath = mntDir[i].path+'/SteamLibrary/steamapps/common'
-        if(await Mixins.methods.pathExists(mntSteamPath)){
-          const mntGameEntrys = await Mixins.methods.getDirectorysFromPath(mntSteamPath)
-          steamGamesEntry = steamGamesEntry.concat(mntGameEntrys)
-        }
-      }
-
-      steamGamesEntry.forEach(entry => {
-        if(this.supported_games[entry.name]){
-          this.games[entry.name] = entry
-        }
+      await invoke('scan_games').then((entrys) => {
+        entrys.forEach(element => {
+          let game = JSON.parse(element)
+          if(this.supported_games[game.name]){
+            this.games[game.name] = game
+          }
+        })
       })
+
       this.$emit('on-scan-games')
     },
 
     sendDeployMods() {
       this.$emit('deploying-mods')
     },
+
     selectNewGame(e, gameEntry){
       const gameButton = e.target 
       const buttonList = this.$el.querySelectorAll('.game-list li button')
@@ -74,7 +56,7 @@ export default {
     </li>
   </div>
   <div class="options-bottom">
-    <button class="settings-button">···</button>
+    <button class="run-button">Run</button>
     <button class="deploy-button" @click="sendDeployMods()">Deploy</button>
   </div>
   <div class="separator-right"></div>
@@ -141,12 +123,9 @@ export default {
 .options-bottom i {
   font-size: 16px;
 }
-.settings-button {
-  width: 35px;
-}
 .deploy-button {
   width: 115px;
-  margin-left: 25px;
+  margin-left: 14px;
   margin-right: 20px;
 }
 .separator-right {
