@@ -65,7 +65,6 @@ export default {
         }
       }
     },
-
     async removeMod(tmm_path, game_path){
       const modDir = await fs.readDir(tmm_path)
       for(var i=0; i<modDir.length; i++){
