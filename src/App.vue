@@ -1,6 +1,6 @@
 <script>
-import { fs, path } from '@tauri-apps/api'
 import { ref } from '@vue/reactivity'
+import { invoke } from '@tauri-apps/api/tauri'
 
 import SideBar from './components/SideBar.vue'
 import ModManager from './components/ModManager.vue'
@@ -8,14 +8,7 @@ import ModManager from './components/ModManager.vue'
 import Mixins from './Mixins';
 import supported_games_json from './assets/supported-games.json'
 
-appDirectoryCheck()
-async function appDirectoryCheck() {
-  const appPath = await path.appDir()
-  if(!await Mixins.methods.pathExists(appPath))
-    await fs.createDir(appPath)
-    if(!await Mixins.methods.pathExists(appPath+"games"))
-      await fs.createDir(appPath+"games")
-}
+invoke('make_stage_directory');
 
 export default {
   mixins: [Mixins],
@@ -39,17 +32,11 @@ export default {
       if(this.$refs.mod_manager != undefined)
         this.$refs.mod_manager.deployMods()
     },
-    async newGameSelected(gameEntry) {
-      const appDir = await path.appDir()
-      const appGameDir = appDir+"games/"+gameEntry.name
-      this.selected_game = gameEntry
-      if(!await Mixins.methods.pathExists(appGameDir)){
-        fs.createDir(appGameDir)
-        if(!await Mixins.methods.pathExists(appGameDir+"/mods")){
-          fs.createDir(appGameDir+"/mods")
-        }
-      }
-      this.$refs.mod_manager.refreshModList()
+    async newGameSelected(game) {
+      invoke('make_game_stage_directory', {gameName: game.name})
+      this.selected_game = game
+      setTimeout(() => { this.$refs.mod_manager.refreshModList() }, 1);
+
     }
   },
   components: {

@@ -1,4 +1,4 @@
-import { fs,  } from '@tauri-apps/api'
+import { fs } from '@tauri-apps/api'
 
 export default {
   methods: {

@@ -1,6 +1,7 @@
 <script>
-import { fs, path } from '@tauri-apps/api'
 import { ref } from '@vue/reactivity'
+import { invoke, dialog } from '@tauri-apps/api/tauri'
+//import { fs } from '@tauri-apps/api'
 
 import Mod from './Mod.vue'
 import ModInstaller from './ModInstaller.vue'
@@ -31,26 +32,33 @@ export default {
   methods: {
     async refreshModList(){
       this.resetMods()
-      const appPath = await path.appDir()
-      const selectedGamePath = appPath+"games/"+this.selected_game.name+"/mods/"
-      const selectedGameModsEntrys = await Mixins.methods.getDirectorysFromPath(selectedGamePath)
-      selectedGameModsEntrys.forEach(modEntry => {
-        this.mods[modEntry.name] = modEntry
+      const modsEntrys = await invoke('get_mods_name', {gameName: this.selected_game.name})
+      modsEntrys.forEach(modEntry => {
+        const modJson = JSON.parse(modEntry)
+        this.mods[modJson.name] = modJson
       })
     },
+
     async deployMods(){
       if(this.$refs.mod_ref != undefined){
         const modList = this.$refs.mod_ref
         for(var i=0; i<modList.length; i++){
           const mod = modList[i]
-          if(mod.$refs.mod_enabled.checked)
+          const json = {name: mod.mod_name, path: mod.tmm_mod_path}      
+          invoke('deploy_mod', { mod: JSON.stringify(json), deploy: mod.$refs.mod_enabled.checked })
+          //
+          // Deploying mods needs to be rewrittin in rust, with VFS until then nothing.
+          //
+          /*if(mod.$refs.mod_enabled.checked){
             this.copyDir(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
-          else
+          }else{
             this.removeMod(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
+          }*/
         }
       }
     },
-    async copyDir(from_path, to_path){
+
+    /*async copyDir(from_path, to_path){
       const fromDir = await fs.readDir(from_path)
       for(var i=0; i<fromDir.length; i++){
         const file = fromDir[i]
@@ -76,7 +84,7 @@ export default {
           }
         }
       }
-    }
+    }*/
   }
 }
 </script>
