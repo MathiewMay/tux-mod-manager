@@ -1,5 +1,4 @@
 <script>
-import { fs, path } from '@tauri-apps/api'
 import { ref } from '@vue/reactivity'
 import { invoke } from '@tauri-apps/api/tauri'
 
@@ -33,17 +32,11 @@ export default {
       if(this.$refs.mod_manager != undefined)
         this.$refs.mod_manager.deployMods()
     },
-    async newGameSelected(gameEntry) {
-      const appDir = await path.appDir()
-      const appGameDir = appDir+"games/"+gameEntry.name
-      this.selected_game = gameEntry
-      if(!await Mixins.methods.pathExists(appGameDir)){
-        fs.createDir(appGameDir)
-        if(!await Mixins.methods.pathExists(appGameDir+"/mods")){
-          fs.createDir(appGameDir+"/mods")
-        }
-      }
-      this.$refs.mod_manager.refreshModList()
+    async newGameSelected(game) {
+      invoke('make_game_stage_directory', {gameName: game.name})
+      this.selected_game = game
+      setTimeout(() => { this.$refs.mod_manager.refreshModList() }, 1);
+
     }
   },
   components: {

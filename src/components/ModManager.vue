@@ -1,5 +1,4 @@
 <script>
-import { path } from '@tauri-apps/api'
 import { ref } from '@vue/reactivity'
 import { invoke } from '@tauri-apps/api/tauri'
 
@@ -32,11 +31,11 @@ export default {
   methods: {
     async refreshModList(){
       this.resetMods()
-      const appPath = await path.appDir()
-      const selectedGamePath = appPath+"games/"+this.selected_game.name+"/mods/"
-      const selectedGameModsEntrys = await Mixins.methods.getDirectorysFromPath(selectedGamePath)
-      selectedGameModsEntrys.forEach(modEntry => {
-        this.mods[modEntry.name] = modEntry
+      const modsEntrys = await invoke('get_mods_name', {gameName: this.selected_game.name})
+      console.log(modsEntrys)
+      modsEntrys.forEach(modEntry => {
+        const modJson = JSON.parse(modEntry)
+        this.mods[modJson.name] = modJson
       })
     },
 
@@ -51,7 +50,7 @@ export default {
       }
     },
 
-    async copyDir(from_path, to_path){
+    /*async copyDir(from_path, to_path){
       const fromDir = await fs.readDir(from_path)
       for(var i=0; i<fromDir.length; i++){
         const file = fromDir[i]
@@ -77,7 +76,7 @@ export default {
           }
         }
       }
-    }
+    }*/
   }
 }
 </script>

@@ -9,6 +9,7 @@ pub struct Game {
 }
 #[derive(Serialize, Deserialize)]
 pub struct Mod {
+  name: String,
   path: String,
 }
 #[tauri::command]
@@ -62,11 +63,41 @@ pub(crate) fn scan_games() -> Vec<String> {
 #[tauri::command]
 pub(crate) fn make_stage_directory() {
   let home_dir = dirs::home_dir().unwrap();
-  let stage_dir = home_dir.join(".config/tmm_stage/games");
+  let stage_dir = home_dir.join(".config/tmm_stage/");
   if !stage_dir.exists() {
+    let games_dir = stage_dir.join("games/");
     fs::create_dir(stage_dir).unwrap();
+    if !games_dir.exists() {
+      fs::create_dir(games_dir).unwrap();
+    }
   }
-  
+}
+#[tauri::command]
+pub(crate) fn make_game_stage_directory(game_name: String) {
+  let stage_dir = dirs::home_dir().unwrap().join(".config/tmm_stage/games/");
+  let game_dir = stage_dir.join(game_name+"/");
+  if !game_dir.exists() {
+    let mods_dir = game_dir.join("mods/");
+    fs::create_dir(game_dir).unwrap();
+    if !mods_dir.exists() {
+      fs::create_dir(mods_dir).unwrap();
+    }
+  }
+}
+#[tauri::command]
+pub(crate) fn get_mods_name(game_name: String) -> Vec<String>{
+  let join_path = ".config/tmm_stage/games/".to_owned()+game_name.as_str()+"/mods/";
+  let game_dir = dirs::home_dir().unwrap().join(join_path);
+  let mods_directories = get_directories(game_dir);
+  let mut mods: Vec<String> = Vec::new();
+  for path in mods_directories {
+    let mod_entry_name = path.file_name().unwrap().to_str().unwrap().to_string();
+    let mod_entry_path = path.to_str().unwrap().to_string();
+    let mod_ = Game {name: mod_entry_name.clone(), path: mod_entry_path};
+    let json = serde_json::to_string(&mod_).unwrap();
+    mods.push(json);
+  }
+  mods.into()
 }
 fn get_directories(path: PathBuf) -> Vec<PathBuf> {
   let mut directories: Vec<PathBuf> = Vec::new();

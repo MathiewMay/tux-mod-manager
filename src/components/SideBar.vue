@@ -36,7 +36,7 @@ export default {
 
     selectNewGame(e, gameEntry){
       const gameButton = e.target 
-      const buttonList = this.$el.querySelectorAll('.game-list li button')
+      const buttonList = this.$refs.game_ref
       buttonList.forEach(elem => {
         elem.className = ""
       })
@@ -52,7 +52,7 @@ export default {
   <button class="scan-games-button" @click="scanGames()">Scan games</button>
   <div class="game-list">
     <li v-for="(game) in games" :key="game">
-      <button @click="selectNewGame($event, game)">{{ game.name }}</button>
+      <button ref="game_ref" @click="selectNewGame($event, game)">{{ game.name }}</button>
     </li>
   </div>
   <div class="options-bottom">
