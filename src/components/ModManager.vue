@@ -1,6 +1,7 @@
 <script>
 import { ref } from '@vue/reactivity'
-import { invoke } from '@tauri-apps/api/tauri'
+import { invoke, dialog } from '@tauri-apps/api/tauri'
+//import { fs } from '@tauri-apps/api'
 
 import Mod from './Mod.vue'
 import ModInstaller from './ModInstaller.vue'
@@ -32,7 +33,6 @@ export default {
     async refreshModList(){
       this.resetMods()
       const modsEntrys = await invoke('get_mods_name', {gameName: this.selected_game.name})
-      console.log(modsEntrys)
       modsEntrys.forEach(modEntry => {
         const modJson = JSON.parse(modEntry)
         this.mods[modJson.name] = modJson
@@ -44,8 +44,16 @@ export default {
         const modList = this.$refs.mod_ref
         for(var i=0; i<modList.length; i++){
           const mod = modList[i]
-          const json = {path: mod.tmm_mod_path}      
+          const json = {name: mod.mod_name, path: mod.tmm_mod_path}      
           invoke('deploy_mod', { mod: JSON.stringify(json), deploy: mod.$refs.mod_enabled.checked })
+          //
+          // Deploying mods needs to be rewrittin in rust, with VFS until then nothing.
+          //
+          /*if(mod.$refs.mod_enabled.checked){
+            this.copyDir(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
+          }else{
+            this.removeMod(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
+          }*/
         }
       }
     },

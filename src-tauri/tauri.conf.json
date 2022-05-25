@@ -21,8 +21,8 @@
                   "$HOME/.local/share/Steam/steamapps/common/*",
                   "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/",
                   "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/*",
-                  "$APP",
-                  "$APP/*"
+                  "$HOME/.config/tmm_stage/",
+                  "$HOME/.config/tmm_stage/*"
                  ]
       }
     },
