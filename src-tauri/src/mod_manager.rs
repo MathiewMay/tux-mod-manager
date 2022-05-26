@@ -13,13 +13,17 @@ pub struct Mod {
   path: String,
 }
 #[tauri::command]
-pub(crate) fn deploy_mod(mod_: String, deploy: bool) {
-  let mod_u: Mod = serde_json::from_str(&mod_).unwrap();
-  if deploy {
-    println!("Deploy {} to game", mod_u.path);
-  }else {
-    println!("Wont deploy {} to game", mod_u.path);
+pub(crate) fn deploy(mods: Vec<String>, game: String) {
+  let mut mods_vec: Vec<Mod> = Vec::new();
+  let game_struct: Game = serde_json::from_str(game.as_str()).unwrap(); 
+  for string in mods {
+    let json: Mod = serde_json::from_str(string.as_str()).unwrap();
+    mods_vec.push(json);
   }
+  for mod_ in mods_vec {
+    println!("{}, {}", mod_.path, game_struct.name)
+  }
+  //let mod_u: Mod = serde_json::from_str(&mod_).unwrap();
 }
 #[tauri::command]
 pub(crate) fn scan_games() -> Vec<String> {

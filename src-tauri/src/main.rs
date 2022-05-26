@@ -15,7 +15,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
       uncompress, 
       mod_manager::scan_games, 
-      mod_manager::deploy_mod, 
+      mod_manager::deploy, 
       mod_manager::make_stage_directory,
       mod_manager::make_game_stage_directory,
       mod_manager::get_mods_name

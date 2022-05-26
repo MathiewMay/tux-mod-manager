@@ -1,6 +1,6 @@
 <script>
 import { ref } from '@vue/reactivity'
-import { invoke, dialog } from '@tauri-apps/api/tauri'
+import { invoke } from '@tauri-apps/api/tauri'
 //import { fs } from '@tauri-apps/api'
 
 import Mod from './Mod.vue'
@@ -42,12 +42,14 @@ export default {
     async deployMods(){
       if(this.$refs.mod_ref != undefined){
         const modList = this.$refs.mod_ref
+        let enabledMod = []
         for(var i=0; i<modList.length; i++){
           const mod = modList[i]
-          const json = {name: mod.mod_name, path: mod.tmm_mod_path}      
-          invoke('deploy_mod', { mod: JSON.stringify(json), deploy: mod.$refs.mod_enabled.checked })
+          const json = {name: mod.mod_name, path: mod.tmm_mod_path}
+          if(mod.$refs.mod_enabled.checked)
+            enabledMod.push(JSON.stringify(json))     
           //
-          // Deploying mods needs to be rewrittin in rust, with VFS until then nothing.
+          // Deploying mods needs to be rewrittin in rust, with OFS until then nothing.
           //
           /*if(mod.$refs.mod_enabled.checked){
             this.copyDir(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
@@ -55,6 +57,8 @@ export default {
             this.removeMod(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
           }*/
         }
+        const jsonGame = JSON.stringify({name: this.selected_game.name, path: this.selected_game.path})
+        invoke('deploy', { mods: enabledMod, game: jsonGame })
       }
     },
 
