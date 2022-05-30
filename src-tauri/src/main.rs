@@ -10,7 +10,6 @@ use std::path::{Path};
 use compress_tools::*;
 
 fn main() {
-  mod_manager::scan_games();
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
       uncompress, 

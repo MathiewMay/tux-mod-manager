@@ -2,12 +2,15 @@ use std::{path::PathBuf, fs};
 use serde::{Deserialize, Serialize};
 use dirs;
 
+mod ofs;
+
 #[derive(Serialize, Deserialize)]
 pub struct Game {
   name: String,
   path: String,
+  work: String,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Mod {
   name: String,
   path: String,
@@ -20,9 +23,11 @@ pub(crate) fn deploy(mods: Vec<String>, game: String) {
     let json: Mod = serde_json::from_str(string.as_str()).unwrap();
     mods_vec.push(json);
   }
-  for mod_ in mods_vec {
+  for mod_ in mods_vec.clone() {
     println!("{}, {}", mod_.path, game_struct.name)
   }
+  let ok = ofs::OFSLogic{ game: game_struct, mods: mods_vec };
+  ok.exec();
   //let mod_u: Mod = serde_json::from_str(&mod_).unwrap();
 }
 #[tauri::command]
@@ -38,7 +43,8 @@ pub(crate) fn scan_games() -> Vec<String> {
       for game_entry in steam_directories {
         let game_entry_name = game_entry.file_name().unwrap().to_str().unwrap().to_string();
         let game_entry_path = game_entry.to_str().unwrap().to_string();
-        let game = Game {name: game_entry_name.clone(), path: game_entry_path};
+        let work_path = home_dir.join(".config/tmm_stage/work/").join(game_entry_name.clone());
+        let game = Game {name: game_entry_name.clone(), path: game_entry_path, work: work_path.to_str().unwrap().to_string()};
         let json = serde_json::to_string(&game).unwrap();
         steam_games.push(json);
       }
@@ -54,7 +60,8 @@ pub(crate) fn scan_games() -> Vec<String> {
         for game_entry in mnt_directories {
           let game_entry_name = game_entry.file_name().unwrap().to_str().unwrap().to_string();
           let game_entry_path = game_entry.to_str().unwrap().to_string();
-          let game = Game {name: game_entry_name.clone(), path: game_entry_path};
+          let work_path = entry.path().join(".config/tmm_stage_work/").join(game_entry_name.clone());
+          let game = Game {name: game_entry_name.clone(), path: game_entry_path, work: work_path.to_str().unwrap().to_string()};
           let json = serde_json::to_string(&game).unwrap();
           steam_games.push(json);
         }
@@ -97,7 +104,7 @@ pub(crate) fn get_mods_name(game_name: String) -> Vec<String>{
   for path in mods_directories {
     let mod_entry_name = path.file_name().unwrap().to_str().unwrap().to_string();
     let mod_entry_path = path.to_str().unwrap().to_string();
-    let mod_ = Game {name: mod_entry_name.clone(), path: mod_entry_path};
+    let mod_ = Mod {name: mod_entry_name.clone(), path: mod_entry_path};
     let json = serde_json::to_string(&mod_).unwrap();
     mods.push(json);
   }

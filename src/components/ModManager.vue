@@ -57,7 +57,7 @@ export default {
             this.removeMod(mod.tmm_mod_path, this.selected_game.path+supported_games_json[this.selected_game.name].extensionsPath['**'])
           }*/
         }
-        const jsonGame = JSON.stringify({name: this.selected_game.name, path: this.selected_game.path})
+        const jsonGame = JSON.stringify({name: this.selected_game.name, path: this.selected_game.path, work: this.selected_game.work})
         invoke('deploy', { mods: enabledMod, game: jsonGame })
       }
     },
