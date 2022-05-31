@@ -2,8 +2,15 @@
 import { path, dialog } from '@tauri-apps/api'
 import { invoke } from '@tauri-apps/api/tauri'
 
+import supported_games_json from '../assets/supported-games.json'
+
 export default {
   props: ['selected_game'],
+  data() {
+    return {
+      supported_games: supported_games_json,
+    };
+  },
   methods: {
     async installMod() {
       const stageDir = await path.homeDir()+".config/tmm_stage/"
@@ -12,7 +19,7 @@ export default {
         const fileExtension = fileFullName.split('.')[fileFullName.split('.').length-1]
         const fileName = fileFullName.split('.')[0]
         if(fileExtension == "zip" || fileExtension == "rar" || fileExtension == "7z"){
-          const appGameDir = stageDir+"games/"+this.selected_game.name+"/mods/"+fileName
+          const appGameDir = stageDir+"games/"+this.selected_game.name+"/mods/"+fileName+supported_games_json[this.selected_game.name].extensionsPath['**']
           invoke('uncompress', { filePath: file, targetPath: appGameDir }).then((result) => {
             this.$emit('on-mod-installed', fileName)
           })
