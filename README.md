@@ -10,8 +10,3 @@ TMM is a Linux native mod manager made with the Tauri toolkit, it can, install, 
  - 🔴 Implement a per-game load order
  - 🔴 Implement mod profiles
  - 🔴 Create cli commands, example to launch a game from steam with a specifc profile without having to use the mod manager
-
-## Build instructions
-Be warned that until a "stable" version is published building the software is not recommanded other than for testing as it might not be stable.
-
-soon.
