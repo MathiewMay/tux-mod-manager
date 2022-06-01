@@ -4,5 +4,14 @@ TMM is a Linux native mod manager made with the Tauri toolkit, it can, install, 
 ## TMM Roadmap
  - 🟢 Move the current mod manager logic to rust
  - 🟢 Implement a OFS (Overlay File System, similar to VFS from MO2)
- - 🔴 Implement a game launcher for native and wine games (for the OFS)
+ - 🔴 Add visual indication that a mod is installing
+ - 🔴 Rewrite scan_games() using the libraryfolder.vdf instead of searching for steam directories intrusively 
+ - 🔴 Implement a game launcher for native and proton games (for the OFS) <- until this is implemented you can just start the game from steam.
  - 🔴 Implement a per-game load order
+ - 🔴 Implement mod profiles
+ - 🔴 Create cli commands, example to launch a game from steam with a specifc profile without having to use the mod manager.
+
+## Build instructions
+Be warned that until i publish a "stable" version building the software is not recommanded as it might not be stable.
+
+soon.
