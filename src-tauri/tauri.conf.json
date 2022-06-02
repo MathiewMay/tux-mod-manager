@@ -14,15 +14,9 @@
     "allowlist": {
       "all": true,
       "fs": {
-        "scope": ["/mnt/",
-                  "/mnt/*/SteamLibrary/steamapps/common/",
-                  "/mnt/*/SteamLibrary/steamapps/common/*",
-                  "$HOME/.local/share/Steam/steamapps/common/",
-                  "$HOME/.local/share/Steam/steamapps/common/*",
-                  "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/",
-                  "$HOME/.var/app/com.valvesoftware.Steam/data/Steam/steamapps/common/*",
-                  "$HOME/.config/tmm_stage/",
-                  "$HOME/.config/tmm_stage/*"
+        "scope": [
+                  "$APP/",
+                  "$APP/*"
                  ]
       }
     },
@@ -41,7 +35,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "ca.mathiewmay.tmm",
+      "identifier": "tux_mod_manager",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
