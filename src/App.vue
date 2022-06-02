@@ -1,17 +1,12 @@
 <script>
 import { ref } from '@vue/reactivity'
-import { invoke } from '@tauri-apps/api/tauri'
 
 import SideBar from './components/SideBar.vue'
 import ModManager from './components/ModManager.vue'
 
-import Mixins from './Mixins';
 import supported_games_json from './assets/supported-games.json'
 
-invoke('make_stage_directory');
-
 export default {
-  mixins: [Mixins],
   data() {
     return {
       supported_games: supported_games_json,
@@ -33,10 +28,8 @@ export default {
         this.$refs.mod_manager.deployMods()
     },
     async newGameSelected(game) {
-      invoke('make_game_stage_directory', {gameName: game.name})
       this.selected_game = game
       setTimeout(() => { this.$refs.mod_manager.refreshModList() }, 1);
-
     }
   },
   components: {
@@ -44,7 +37,6 @@ export default {
     ModManager
   }
 }
-
 </script>
 
 <template>

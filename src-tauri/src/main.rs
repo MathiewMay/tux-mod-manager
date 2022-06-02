@@ -5,27 +5,16 @@
 
 mod mod_manager;
 
-use std::fs::File;
-use std::path::{Path};
-use compress_tools::*;
-
 fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
-      uncompress, 
+      mod_manager::uncompress, 
       mod_manager::scan_games, 
-      mod_manager::deploy, 
-      mod_manager::make_stage_directory,
-      mod_manager::make_game_stage_directory,
-      mod_manager::get_mods_name
+      mod_manager::deploy,
+      mod_manager::get_mods,
+      mod_manager::remove_mod
     ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
 
-#[tauri::command]
-async fn uncompress(file_path: String, target_path: String) {
-  let mut source_file = File::open(file_path).unwrap();
-  let target = Path::new(&target_path);
-  uncompress_archive(&mut source_file,&target, Ownership::Ignore).unwrap();
-}

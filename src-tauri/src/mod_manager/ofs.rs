@@ -11,7 +11,7 @@ impl OFSLogic {
   pub fn exec(&self) {
     let mut mod_paths: Vec<PathBuf> = Vec::new();
     let upper_path: PathBuf = PathBuf::new().join(&self.game.path);
-    let work_path: PathBuf = dirs::home_dir().unwrap().join(&self.game.work);
+    let work_path: PathBuf = dirs::home_dir().unwrap().join(&self.game.work_path);
     
     for elem in &self.mods {
       mod_paths.push(PathBuf::new().join(&elem.path));

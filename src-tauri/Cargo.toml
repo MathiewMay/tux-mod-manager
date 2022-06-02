@@ -20,6 +20,7 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.0.0-rc.9", features = ["api-all"] }
 compress-tools = "0.12.2"
 dirs = "4.0.0"
+steamlocate = "1.0.1"
 
 [features]
 # by default Tauri runs in production mode

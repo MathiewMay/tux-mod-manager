@@ -1,11 +1,13 @@
 {
-  "Skyrim Special Edition": {
+  "489830": {
+    "public_name": "Skyrim Special Edition",
     "binaryPath": "/SkyrimSE.exe",
     "extensionsPath": {
       "**": "/Data/"
     }
   },
-  "Cyberpunk 2077": {
+  "1091500": {
+    "public_name": "Cyberpunk 2077",
     "binaryPath": "/bin/x64/Cyberpunk2077.exe",
     "extensionsPath": {
       "**": ""

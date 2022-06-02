@@ -2,11 +2,9 @@
 import { reactive } from '@vue/reactivity'
 import { invoke } from '@tauri-apps/api/tauri'
 
-import Mixins from '../Mixins';
 import supported_games_json from '../assets/supported-games.json'
 
 export default {
-  mixins: [Mixins],
   data() {
     return {
       supported_games: supported_games_json,
@@ -21,12 +19,11 @@ export default {
       await invoke('scan_games').then((entrys) => {
         entrys.forEach(element => {
           let game = JSON.parse(element)
-          if(this.supported_games[game.name]){
-            this.games[game.name] = game
+          if(this.supported_games[game.appid]){
+            this.games[game.appid] = game
           }
         })
       })
-
       this.$emit('on-scan-games')
     },
 

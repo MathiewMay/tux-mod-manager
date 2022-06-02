@@ -13,20 +13,17 @@ export default {
   },
   methods: {
     async installMod() {
-      const stageDir = await path.homeDir()+".config/tmm_stage/"
+      const stageDir = await path.homeDir()+".config/tmm_stage/games/"
       dialog.open().then((file) => {
         const fileFullName = file.split('/')[file.split('/').length-1]
         const fileExtension = fileFullName.split('.')[fileFullName.split('.').length-1]
         const fileName = fileFullName.split('.')[0]
         if(fileExtension == "zip" || fileExtension == "rar" || fileExtension == "7z"){
-          const appGameDir = stageDir+"games/"+this.selected_game.name+"/mods/"+fileName+supported_games_json[this.selected_game.name].extensionsPath['**']
-          invoke('uncompress', { filePath: file, targetPath: appGameDir }).then((result) => {
-            this.$emit('on-mod-installed', fileName)
-          })
+          const appGameDir = stageDir+this.selected_game.appid+"/"+fileName+supported_games_json[this.selected_game.appid].extensionsPath['**']
+          invoke('uncompress', { filePath: file, targetPath: appGameDir }).then(()=>{this.$emit('on-mod-installed', fileName)})
         }else{
           dialog.message("File format mismatch.")
         }
-
       })
     }
   }
@@ -35,6 +32,9 @@ export default {
 
 <template>
 <button @click="installMod">Install Mods</button>
+<li class="mod-list" v-for="(mod) in mods" :key="mod">
+  <Mod ref="mod_ref" :selected_game="selected_game" :mod_name="mod.name" :tmm_mod_path="mod.path"/>
+</li>
 </template>
 
 <style>
