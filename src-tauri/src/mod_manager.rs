@@ -38,7 +38,8 @@ pub fn scan_games() -> Vec<String> {
   for key in steam_apps.keys() {
     let app = steam_apps[key].as_ref().unwrap();
     let stage_path = dirs::home_dir().unwrap().join([".config/tmm_stage/games/", app.appid.to_string().as_str()].join(""));
-    let work_path = app.path.to_path_buf().components().take(3).collect::<PathBuf>().join([".config/tmm_stage/work/", app.appid.to_string().as_str()].join(""));
+    let components_count = app.path.to_path_buf().components().count();
+    let work_path = app.path.to_path_buf().components().take(components_count-4).collect::<PathBuf>().join([".tmm_work/", app.appid.to_string().as_str()].join(""));
     let game = Game{ appid: app.appid, name: app.name.as_ref().unwrap().to_string(), path: app.path.to_path_buf(), stage_path, work_path };
     let json = serde_json::to_string(&game).unwrap();
     make_tmm_game_directories(game);

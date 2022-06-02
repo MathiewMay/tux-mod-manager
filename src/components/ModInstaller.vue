@@ -13,14 +13,15 @@ export default {
   },
   methods: {
     async installMod() {
-      const stageDir = await path.homeDir()+".config/tmm_stage/games/"
       dialog.open().then((file) => {
+        const stageGameDir = this.selected_game.stage_path;
         const fileFullName = file.split('/')[file.split('/').length-1]
         const fileExtension = fileFullName.split('.')[fileFullName.split('.').length-1]
         const fileName = fileFullName.split('.')[0]
         if(fileExtension == "zip" || fileExtension == "rar" || fileExtension == "7z"){
-          const appGameDir = stageDir+this.selected_game.appid+"/"+fileName+supported_games_json[this.selected_game.appid].extensionsPath['**']
-          invoke('uncompress', { filePath: file, targetPath: appGameDir }).then(()=>{this.$emit('on-mod-installed', fileName)})
+          const modStageDir = stageGameDir+"/"+fileName+supported_games_json[this.selected_game.appid].extensionsPath['**']
+          console.log(modStageDir);
+          invoke('uncompress', { filePath: file, targetPath: modStageDir }).then(()=>{this.$emit('on-mod-installed', fileName)})
         }else{
           dialog.message("File format mismatch.")
         }
