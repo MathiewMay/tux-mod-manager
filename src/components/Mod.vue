@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/tauri'
 import { dialog } from '@tauri-apps/api'
 
 export default {
-  props: ['mod', 'selected_game'],
+  props: ['mod', 'selected_game', 'installing'],
   methods: {
     async removeMod() {
       dialog.ask("You are about to delete \n\""+this.mod.name+"\" \nare you sure you want to proceed?").then((proceed) => {
@@ -18,16 +18,25 @@ export default {
 </script>
 
 <template>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <div class="mod">
-  <input ref="mod_enabled" class="mod-enabled" type="checkbox">
+  <input v-if="installing != true" ref="mod_enabled" class="mod-enabled" type="checkbox">
+  <i v-else class="fa fa-duotone fa-arrows-rotate fa-spin"></i>
   <p class="mod-name">{{ mod.name }}</p>
   <div class="mod-options">
-    <button class="remove-button" @click="removeMod()">Remove</button>
+    <button v-if="installing != true" class="end-button" @click="removeMod()">Remove</button>
+    <button v-else class="end-button" @click="()=>{}">Cancel</button>
   </div>
 </div>
 </template>
 
 <style scoped>
+.fa {
+  color: white;
+  margin-top: 5px;
+  margin-left: 5px;
+  font-size: x-large;
+}
 .mod {
   display: flex;
   flex-direction:row;
@@ -54,7 +63,7 @@ export default {
 .mod-options button {
   margin-top: 3px;
 }
-.remove-button {
+.end-button {
   width: 89px;
   height: 30px;
 }

@@ -56,7 +56,7 @@ export default {
 <div class="mod-manager">
   <div class="mod-order">
     <li class="mod-list" v-for="(mod) in mods" :key="mod">
-      <Mod ref="mod_ref" :selected_game="selected_game" :mod="mod"/>
+      <Mod ref="mod_ref" :selected_game="selected_game" :mod="mod" :installing="'false'"/>
     </li>
   </div>
   <div class="separator-bottom"></div>
