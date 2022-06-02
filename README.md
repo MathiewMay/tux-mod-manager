@@ -12,14 +12,18 @@ TMM is a Linux native mod manager made with the Tauri toolkit, it can, install, 
  - 🔴 Implement mod profiles
  - 🔴 Create cli commands, example to launch a game from steam with a specifc profile without having to use the mod manager
 
-## Test environment
-If you want to help with the development of Tux Mod Manager you will need to setup a testing environment this is how you do it.
-(If you would rather just use the software without helpign development please wait for a "stable" release)
+## Dev environment
+If you want to help with the development of Tux Mod Manager you will need to setup a dev environment this is how you do that.
+(If you would rather just use the software without helping development please wait for a "stable" release)
 
-- git clone https://github.com/MathiewMay/tux-mod-manager
-- cd ./tux-mod-manager
-- npm install
+Install dev environment
+```
+git clone https://github.com/MathiewMay/tux-mod-manager
+cd ./tux-mod-manager
+npm install
+```
 
-when all of this is done you can launch the dev envirnoment using
-
-- npm run tauri dev
+Run dev environment
+```
+npm run tauri dev
+```
