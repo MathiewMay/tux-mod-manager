@@ -29,7 +29,6 @@ export default {
       dialog.open({filters: [{ extensions: ['zip', 'rar', '7z'], name: "Archives" }]}).then((file) => {
         const stageGameDir = this.selected_game.stage_path;
         const fileFullName = file.split('/')[file.split('/').length-1]
-        const fileExtension = fileFullName.split('.')[fileFullName.split('.').length-1]
         const fileName = fileFullName.split('.')[0]
         const modStageDir = stageGameDir+"/"+fileName+supported_games_json[this.selected_game.appid].extensionsPath['**']
         this.mods[fileName] = {name: fileName, path: modStageDir}
@@ -72,9 +71,9 @@ export default {
 .install-button {
   position: fixed;
   margin-bottom: 5px;
-  margin-right: 5px;
+  margin-left: 5px;
   bottom: 0%;
-  right: 0%;
+  left: 20%;
   width: 100px;
   height: 30px;
 }
