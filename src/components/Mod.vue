@@ -29,22 +29,25 @@ export default {
 </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .fa {
   color: white;
-  margin-top: 5px;
-  margin-left: 5px;
   font-size: x-large;
+  margin-right: 10px;
+  width: 30px; line-height: 30px;
+  text-align: center;
 }
 .mod {
   display: flex;
   flex-direction:row;
   justify-content: left;
+  padding: 5px;
 }
 .mod-enabled {
-  float: left;
   width: 30px;
   height: 30px;
+  margin: 0;
+  margin-right: 10px;
 }
 .mod-name {
   color: white;
@@ -53,17 +56,11 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   margin: 0px;
-  margin-top: 8px;
-  margin-left: 10px;
-}
-.mod-options {
-  float: right;
+  line-height: 30px;
+  height: 30px;
 }
 .mod-options button {
-  margin: 5px;
-}
-.end-button {
-  width: 90px;
+  margin: 0;
   height: 30px;
 }
 </style>

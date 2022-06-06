@@ -57,6 +57,7 @@ export default {
   overflow-y: scroll;
   .install-mod-list { 
     list-style: none;
+    border-top: 1px solid rgba(255,255,255,8%);
   }
   .install-button {
     position: fixed;

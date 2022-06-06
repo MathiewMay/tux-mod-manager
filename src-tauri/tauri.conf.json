@@ -65,7 +65,7 @@
         "minHeight": 500,
         "resizable": true,
         "title": "Tux Mod Manager",
-        "minWidth": 1200
+        "minWidth": 800
       }
     ]
   }

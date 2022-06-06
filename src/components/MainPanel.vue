@@ -82,9 +82,16 @@ export default {
 <style lang="scss" scoped>
 .main-panel {
   flex: 1 1 auto;
+  overflow: auto;
+  height: 100vh;
   .tab-selector {
     padding-top: 5px;
     padding-inline: 5px;
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    border-bottom: 1px solid rgba(255,255,255,8%);
+    background: #121212;
     button {
       border-bottom-right-radius: 0;
       border-bottom-left-radius: 0;
@@ -101,12 +108,9 @@ export default {
     }
   }
   .tabs {
-    display: flex;
-    flex-direction: row;
     .load-order, .downloads {
+      overflow: auto;
       display: none;
-      flex: 1 1 auto;
-      border-top: 1px solid rgba(255,255,255,14%);
       &.visible {
         display: block;
       }
@@ -114,15 +118,12 @@ export default {
     .load-order {
       .mod-order {
         padding: 0;
-        padding-inline: 5px;
-        &:first-child {
-          padding-top: 5px;
-        }
-        &:last-child {
-          padding-bottom: 5px;
-        }
         .mod-list {
           list-style: none;
+          border-bottom: 1px solid rgba(255,255,255,8%);
+          &:last-child {
+            border-bottom: none;
+          }
         }
       }
     }

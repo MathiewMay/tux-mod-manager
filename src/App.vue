@@ -77,6 +77,8 @@ button {
   border-radius: 5px;
   background-color: rgba(255,255,255,9%);
   color: rgba(255,255,255,100%);
+  padding: 5px;
+  padding-inline: 10px;
 }
 button:hover {
   cursor: pointer;
