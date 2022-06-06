@@ -2,7 +2,7 @@
 import { ref } from '@vue/reactivity'
 
 import SideBar from './components/SideBar.vue'
-import ModManager from './components/ModManager.vue'
+import MainPanel from './components/MainPanel.vue'
 
 import supported_games_json from './assets/supported-games.json'
 
@@ -34,24 +34,43 @@ export default {
   },
   components: {
     SideBar,
-    ModManager
+    MainPanel
   }
 }
 </script>
 
 <template>
-  <SideBar @on-game-selected="newGameSelected" @on-scan-games="newScanGames" @deploying-mods="deployMods()"/>
-  <ModManager v-if="selected_game.name" ref="mod_manager" :selected_game="selected_game"/>
+  <div class="flex-container">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <SideBar @on-game-selected="newGameSelected" @on-scan-games="newScanGames" @deploying-mods="deployMods()"/>
+    <MainPanel v-if="selected_game.name" ref="mod_manager" :selected_game="selected_game"/>
+  </div>
 </template>
+
+<style lang="scss" scoped>
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+</style>
 
 <style>
 *{
   -webkit-user-select: none;
   user-select: none;
+  box-sizing: border-box;
+}
+html {
+  height: 100%;
 }
 body {
   margin: 0px;
+  height: 100%;
   background-color: #121212;
+}
+#app {
+  height: 100%;
 }
 button {
   border: none;

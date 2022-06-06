@@ -62,10 +62,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 720,
-        "resizable": false,
+        "minHeight": 500,
+        "resizable": true,
         "title": "Tux Mod Manager",
-        "width": 1080
+        "minWidth": 1200
       }
     ]
   }

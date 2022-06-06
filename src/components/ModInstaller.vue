@@ -43,38 +43,27 @@ export default {
 </script>
 
 <template>
-<div class="installer">
-  <div class="install-mod-order">
-    <li class="install-mod-list" v-for="(mod) in mods" :key="mod">
-      <Mod :selected_game="selected_game" :mod="mod" :installing="true"/>
-    </li>
-  </div>
+<div class="install-mod-order">
   <button class="install-button" @click="installMod">Install Mods</button>
+  <li class="install-mod-list" v-for="(mod) in mods" :key="mod">
+    <Mod :selected_game="selected_game" :mod="mod" :installing="true"/>
+  </li>
 </div>
-
 </template>
 
-<style>
-.installer {
-  width: 865px;
-}
+<style lang="scss" scoped>
 .install-mod-order {
   width: 100%;
-  max-height: 500px;
-  overflow: hidden;
   overflow-y: scroll;
-}
-.install-mod-list { 
-  margin: 5px;
-  list-style: none;
-}
-.install-button {
-  position: fixed;
-  margin-bottom: 5px;
-  margin-left: 5px;
-  bottom: 0%;
-  left: 20%;
-  width: 100px;
-  height: 30px;
+  .install-mod-list { 
+    list-style: none;
+  }
+  .install-button {
+    position: fixed;
+    bottom: 0; right: 0;
+    margin: 10px;
+    padding: 5px;
+    padding-inline: 15px;
+  }
 }
 </style>
