@@ -35,9 +35,9 @@ export default {
       const gameButton = e.target 
       const buttonList = this.$refs.game_ref
       buttonList.forEach(elem => {
-        elem.className = ""
+        elem.classList.remove("active");
       })
-      gameButton.className = "active"
+      gameButton.classList.add("active");
       this.$emit('on-game-selected', gameEntry)
     }
   }
