@@ -19,11 +19,6 @@ pub async fn download(url: String, savepath: String) {
     }   
 }
 
-#[tauri::command]
-pub async fn test(hi: String) {
-  println!("test: {}", hi);
-}
-
 fn work(url: String, save_path: String) -> Fallible<()> {
     let parsed_url;
     match utils::parse_url(url.as_str()) {
