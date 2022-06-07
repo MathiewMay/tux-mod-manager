@@ -27,12 +27,10 @@ export default {
   methods: {
     async installMod() {
       dialog.open({filters: [{ extensions: ['zip', 'rar', '7z'], name: "Archives" }]}).then((file) => {
-        const stageGameDir = this.selected_game.stage_path;
         const fileFullName = file.split('/')[file.split('/').length-1]
         const fileName = fileFullName.split('.')[0]
-        const modStageDir = stageGameDir+"/"+fileName+supported_games_json[this.selected_game.appid].extensionsPath['**']
-        this.mods[fileName] = {name: fileName, path: modStageDir}
-        invoke('uncompress', { filePath: file, targetPath: modStageDir }).then(()=>{
+        this.mods[fileName] = {name: fileName}
+        invoke('uncompress', { filePath: file, fileName: fileName, game: this.selected_game}).then(()=>{
           this.$emit('on-mod-installed', fileName)
           delete this.mods[fileName]
         })

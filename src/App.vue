@@ -43,7 +43,7 @@ export default {
   <div class="flex-container">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <SideBar @on-game-selected="newGameSelected" @on-scan-games="newScanGames" @deploying-mods="deployMods()"/>
-    <MainPanel v-if="selected_game.name" ref="mod_manager" :selected_game="selected_game"/>
+    <MainPanel v-if="selected_game.name || true" ref="mod_manager" :selected_game="selected_game"/>
   </div>
 </template>
 

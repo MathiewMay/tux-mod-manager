@@ -8,7 +8,7 @@ export default {
     async removeMod() {
       dialog.ask("You are about to delete \n\""+this.mod.name+"\" \nare you sure you want to proceed?").then((proceed) => {
         if(proceed){
-          invoke('remove_mod', { modStruct: this.mod })
+          invoke('remove_mod', { modStruct: this.mod, game: this.selected_game })
           this.$parent.refreshModList()
         }
       })

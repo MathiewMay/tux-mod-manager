@@ -12,10 +12,10 @@ impl OFSLogic {
   pub fn exec(&self) {
     let mut mod_paths: Vec<PathBuf> = Vec::new();
     let upper_path: PathBuf = PathBuf::new().join(&self.game.install_path);
-    let work_path: PathBuf = dirs::home_dir().unwrap().join(&self.game.profile_path).join("work");
+    let work_path: PathBuf = PathBuf::new().join(&self.game.profile_path).join("work");
     
     for elem in &self.mods {
-      mod_paths.push(PathBuf::new().join(&elem.path));
+      mod_paths.push(PathBuf::new().join(&self.game.profile_path.join("mods").join(&elem.name)));
     }
 
     init_overlay_fs(mod_paths, &upper_path, &upper_path, &work_path);

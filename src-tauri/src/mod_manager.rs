@@ -25,7 +25,6 @@ use game::{Game, Executable};
 #[derive(Serialize, Deserialize)]
 pub struct Mod {
   name: String,
-  path: String,
 }
 
 #[tauri::command]
@@ -103,7 +102,7 @@ pub fn get_mods(game: Game) -> Vec<String>{
   let mut mods: Vec<String> = Vec::new();
   for path in get_directories(&game.profile_path.join("mods")) {
     let name = path.file_name().unwrap().to_str().unwrap().to_string();
-    let mod_struct: Mod = Mod { name, path: path.to_str().unwrap().to_string() };
+    let mod_struct: Mod = Mod { name };
     let mod_json: String = serde_json::to_string(&mod_struct).unwrap();
     mods.push(mod_json);
   }
@@ -111,8 +110,9 @@ pub fn get_mods(game: Game) -> Vec<String>{
 }
 
 #[tauri::command]
-pub fn remove_mod(mod_struct: Mod) {
-  fs::remove_dir_all(mod_struct.path).unwrap();
+pub fn remove_mod(mod_struct: Mod, game: Game) {
+  let mod_dir = game.profile_path.join("mods").join(mod_struct.name);
+  fs::remove_dir_all(mod_dir).unwrap();
 }
 
 pub(crate) fn make_tmm_game_directories(game: Game) {
@@ -137,8 +137,8 @@ fn get_directories(path: &PathBuf) -> Vec<PathBuf> {
 }
 
 #[tauri::command]
-pub async fn uncompress(file_path: String, target_path: String) {
+pub async fn uncompress(file_path: String, file_name: String, game: Game) {
   let mut source_file = fs::File::open(file_path).unwrap();
-  let target = PathBuf::new().join(&target_path);
+  let target = game.profile_path.join("mods").join(file_name).join(game.path_extension);
   uncompress_archive(&mut source_file,&target, Ownership::Ignore).unwrap();
 }
