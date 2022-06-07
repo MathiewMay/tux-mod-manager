@@ -18,6 +18,7 @@ pub struct Config {
     pub resume: bool,
     pub headers: HeaderMap,
     pub file: String,
+    pub save_path: String,
     pub timeout: u64,
     pub concurrent: bool,
     pub max_retries: i32,

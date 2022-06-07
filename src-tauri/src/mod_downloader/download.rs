@@ -11,14 +11,11 @@ use failure::{format_err, Fallible};
 use crate::mod_downloader::utils::{decode_percent_coded_string, get_file_handle};
 use crate::mod_downloader::core::{Config, EventsHandler, HttpDownload};
 
-pub fn http_download(url: Url, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
+pub fn http_download(url: Url, save_path: String, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
     let user_agent = format!("TMM/{}", &version);
     let timeout = 30u64;
     let num_workers = 8usize;
-    let mut url_string = "".to_string();
-    String::clone_from(&mut url_string, &url.as_ref().to_string());
-    let copy: Url = Url::parse(url_string.as_str()).unwrap();
-    let headers = request_headers(copy, timeout, "TMM/0.1.0")?;
+    let headers = request_headers(&url, timeout, "TMM/0.1.0")?;
     let filename = gen_filename(&url, Some(&headers));
 
     let content_len = if let Some(val) = headers.get("Content-Length") {
@@ -50,6 +47,7 @@ pub fn http_download(url: Url, resume_download: bool, concurrent_download: bool,
         resume: resume_download,
         headers,
         file: filename.clone(),
+        save_path: save_path.clone(),
         timeout,
         concurrent: concurrent_download,
         max_retries: 100,
@@ -60,12 +58,12 @@ pub fn http_download(url: Url, resume_download: bool, concurrent_download: bool,
     };
 
     let mut client = HttpDownload::new(url.clone(), conf.clone());
-    let events_handler = DefaultEventsHandler::new(&filename, resume_download, concurrent_download)?;
+    let events_handler = DefaultEventsHandler::new(&filename, &save_path, resume_download, concurrent_download)?;
     client.events_hook(events_handler).download()?;
     Ok(())
 }
 
-fn request_headers(url: Url, timeout: u64, ua: &str) -> Fallible<HeaderMap> {
+fn request_headers(url: &Url, timeout: u64, ua: &str) -> Fallible<HeaderMap> {
     // let mut url_string = "".to_string();
     // String::clone_from(&mut url_string, &url.as_ref().to_string());
     // let copy: Url = Url::parse(url_string.as_str()).unwrap();
@@ -199,6 +197,7 @@ fn get_resume_chunk_offsets(filename: &str, content_len: u64, chunk_size: u64) -
 pub struct DefaultEventsHandler {
     bytes_on_disk: Option<u64>,
     filename: String,
+    save_path: String,
     file: BufWriter<fs::File>,
     st_file: Option<BufWriter<fs::File>>,
     server_supports_resume: bool
@@ -207,12 +206,13 @@ pub struct DefaultEventsHandler {
 impl DefaultEventsHandler {
     pub fn new(
         filename: &str,
+        save_path: &str,
         resume: bool,
         concurrent: bool
     ) -> Fallible<DefaultEventsHandler> {
         let st_file = if concurrent {
             Some(BufWriter::new(get_file_handle(
-                &format!("{}.st", filename), resume, true
+                &format!("{}.st", filename), save_path, resume, true
             )?))
         } else {
             None
@@ -220,7 +220,8 @@ impl DefaultEventsHandler {
         Ok(DefaultEventsHandler {
             bytes_on_disk: calc_bytes_on_disk(filename)?,
             filename: filename.to_owned(),
-            file: BufWriter::new(get_file_handle(filename, resume, !concurrent)?),
+            save_path: save_path.to_owned(),
+            file: BufWriter::new(get_file_handle(&filename, save_path, resume, !concurrent)?),
             st_file,
             server_supports_resume: false
         })
@@ -229,12 +230,12 @@ impl DefaultEventsHandler {
 
 impl EventsHandler for DefaultEventsHandler {
     fn on_headers(&mut self, headers: HeaderMap) {
-        let ct_type = if let Some(val) = headers.get(header::CONTENT_TYPE) {
+        let content_type = if let Some(val) = headers.get(header::CONTENT_TYPE) {
             val.to_str().unwrap_or("")
         } else {
             ""
         };
-        println!("Type: {}", ct_type);
+        println!("Type: {}", content_type);
         println!("Saving to: {}", &self.filename);
     }
 
