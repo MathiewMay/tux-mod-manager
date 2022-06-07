@@ -19,9 +19,9 @@ export default {
       await invoke('scan_games').then((entrys) => {
         entrys.forEach(element => {
           let game = JSON.parse(element)
-          if(this.supported_games[game.appid]){
+          // if(this.supported_games[game.appid]){
             this.games[game.appid] = game
-          }
+          // }
         })
       })
       this.$emit('on-scan-games')
@@ -49,7 +49,7 @@ export default {
   <button class="scan-games-button" @click="scanGames()">Scan games</button>
   <div class="game-list">
     <li v-for="(game) in games" :key="game">
-      <button ref="game_ref" @click="selectNewGame($event, game)">{{ game.name }}</button>
+      <button ref="game_ref" @click="selectNewGame($event, game)">{{ game.public_name }}</button>
     </li>
   </div>
   <div class="options-bottom">
