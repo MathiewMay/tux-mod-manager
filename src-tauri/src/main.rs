@@ -5,6 +5,7 @@
 
 mod mod_manager;
 mod mod_downloader;
+mod config;
 
 fn main() {
   tauri::Builder::default()
