@@ -73,7 +73,7 @@ export default {
       </div>
     </div>
     <div class="downloads" :class="{visible: tab == 1}">
-      <ModDownloader></ModDownloader>
+      <ModDownloader :selected_game="selected_game"></ModDownloader>
     </div>
   </div>
 </div>

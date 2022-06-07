@@ -10,7 +10,9 @@ TMM is a Linux native mod manager made with the Tauri toolkit. It can install, l
 - [ ] Download manager for directly downloading mods from websites (e.g. Nexusmods)
     - [x] Front-End Design
     - [x] The actual file download
-    - [ ] Putting the file in the correct location
+    - [x] Putting the file in the correct location
+    - [ ] Selecting the right file
+    - [ ] Implementing some kind of handshake with the Nexusmods API to allow seamless downlaods via the `Mod Manager Download` button on their website
     - [ ] Displaying the current downloads in the Front-End
 - [ ] Implement a game launcher for native and proton games (for the OFS)
 - [ ] Implement a per-game load order
@@ -18,7 +20,7 @@ TMM is a Linux native mod manager made with the Tauri toolkit. It can install, l
 - [ ] Create cli commands, example to launch a game from steam with a specifc profile without having to use the mod manager
 
 ## Current indev issues
-- [ ] Some mods may have a `data` folder already in their archive, some may not. This leads to a double up of the data folder, which would prevent the mod from loading.
+- [ ] For games with path extensions, some mods may have the extension folder already in their archive, some may not. This means that sometimes a mod has the extension folder, sometimes it doesn't. In the end this would resoult in the Game not reading some mods, because they're essentially in the wrong folder (e.g. `data/data/`)
 - [ ] Download manager does not yet currently work entirely
 
 ## Dev environment

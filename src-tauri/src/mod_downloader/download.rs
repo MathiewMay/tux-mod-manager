@@ -1,6 +1,6 @@
 use std::time::Duration;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::io::{BufRead, BufReader, BufWriter, Seek, SeekFrom, Write};
 
 use url::Url;
@@ -11,7 +11,7 @@ use failure::{format_err, Fallible};
 use crate::mod_downloader::utils::{decode_percent_coded_string, get_file_handle};
 use crate::mod_downloader::core::{Config, EventsHandler, HttpDownload};
 
-pub fn http_download(url: Url, save_path: String, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
+pub fn http_download(url: Url, save_path: PathBuf, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
     let user_agent = format!("TMM/{}", &version);
     let timeout = 30u64;
     let num_workers = 8usize;
@@ -58,7 +58,7 @@ pub fn http_download(url: Url, save_path: String, resume_download: bool, concurr
     };
 
     let mut client = HttpDownload::new(url.clone(), conf.clone());
-    let events_handler = DefaultEventsHandler::new(&filename, &save_path, resume_download, concurrent_download)?;
+    let events_handler = DefaultEventsHandler::new(&filename, &save_path.to_str().unwrap(), resume_download, concurrent_download)?;
     client.events_hook(events_handler).download()?;
     Ok(())
 }

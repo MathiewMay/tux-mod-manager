@@ -3,6 +3,7 @@ use std::fmt;
 use std::time::Duration;
 use std::io::Read;
 use std::sync::mpsc;
+use std::path::PathBuf;
 
 use reqwest::header::{self, HeaderMap, HeaderValue};
 use reqwest::blocking::{Client, Request};
@@ -18,7 +19,7 @@ pub struct Config {
     pub resume: bool,
     pub headers: HeaderMap,
     pub file: String,
-    pub save_path: String,
+    pub save_path: PathBuf,
     pub timeout: u64,
     pub concurrent: bool,
     pub max_retries: i32,

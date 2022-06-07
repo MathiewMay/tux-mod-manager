@@ -15,6 +15,7 @@ import { invoke } from '@tauri-apps/api/tauri'
 
 import Download from './Download.vue'
 export default {
+  props: ['selected_game'],
   components: {
     Download
   },
@@ -92,7 +93,7 @@ export default {
   methods: {
     async download() {
       // invoke('download', {url: "https://raw.githubusercontent.com/Erdragh/tux-mod-manager/download-manager/src-tauri/icons/128x128.png"});
-      invoke('download', {url: "https://download1593.mediafire.com/ljy05cwk2thg/hfuz1ltcj2icuj2/Lux+Orbis-56095-2-5-1645288797.rar", savepath: "/home/erdragh/.config/tmm_stage/games/489830/downloads/"});
+      invoke('download', {url: "https://download1593.mediafire.com/ljy05cwk2thg/hfuz1ltcj2icuj2/Lux+Orbis-56095-2-5-1645288797.rar", game: this.selected_game});
       // invoke('download', {url: "hi"});
     }
   }

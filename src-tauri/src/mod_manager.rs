@@ -9,7 +9,7 @@ extern crate steamlocate;
 use steamlocate::SteamDir;
 
 mod ofs;
-mod game;
+pub mod game;
 
 use game::{Game, Executable};
 
@@ -38,13 +38,11 @@ pub fn scan_games() -> Vec<String> {
   let mut steam_games: Vec<String> = Vec::new();
   let steam_apps = SteamDir::locate().unwrap().apps().clone();
 
-  let mut known_path_extensions_json = dirs::config_dir().unwrap().join("tmm_stage").join("known_path_extensions");
-  known_path_extensions_json.set_extension("json");
+  let mut known_path_extensions_json = dirs::config_dir().unwrap().join("tmm_stage/known_path_extensions.json");
   let path_extension_contents = fs::read_to_string(known_path_extensions_json).unwrap();
   let known_path_extensions: Vec<(u32, PathBuf)> = serde_json::from_str(path_extension_contents.as_str()).unwrap();
 
-  let mut supported_games_json = dirs::config_dir().unwrap().join("tmm_stage").join("supported_games");
-  supported_games_json.set_extension("json");
+  let mut supported_games_json = dirs::config_dir().unwrap().join("tmm_stage/supported_games.json");
   let supported_games_contents = fs::read_to_string(supported_games_json).unwrap();
   let supported_games: Vec<u32> = serde_json::from_str(supported_games_contents.as_str()).unwrap();
 
@@ -62,7 +60,7 @@ pub fn scan_games() -> Vec<String> {
     } else if !supported_games.contains(&app.appid) {
       println!("Game: {} not currently supported.", app.name.as_ref().unwrap());
     } else {
-      let profile_path = dirs::config_dir().unwrap().join("tmm_stage").join("profiles").join(format!("{}", app.appid));
+      let profile_path = dirs::config_dir().unwrap().join("tmm_stage/profiles/").join(format!("{}", app.appid));
       let mut path_extension: PathBuf = PathBuf::new();
       for pair in &known_path_extensions {
         let (id, extension) = pair;
@@ -117,9 +115,9 @@ pub fn remove_mod(mod_struct: Mod, game: Game) {
 
 pub(crate) fn make_tmm_game_directories(game: Game) {
   fs::create_dir_all(&game.profile_path).unwrap();
-  fs::create_dir_all(&game.profile_path.join("work")).unwrap();
-  fs::create_dir_all(&game.profile_path.join("downloads")).unwrap();
-  fs::create_dir_all(&game.profile_path.join("mods")).unwrap();
+  fs::create_dir_all(&game.profile_path.join("work/")).unwrap();
+  fs::create_dir_all(&game.profile_path.join("downloads/")).unwrap();
+  fs::create_dir_all(&game.profile_path.join("mods/")).unwrap();
 }
 
 fn get_directories(path: &PathBuf) -> Vec<PathBuf> {
@@ -139,6 +137,6 @@ fn get_directories(path: &PathBuf) -> Vec<PathBuf> {
 #[tauri::command]
 pub async fn uncompress(file_path: String, file_name: String, game: Game) {
   let mut source_file = fs::File::open(file_path).unwrap();
-  let target = game.profile_path.join("mods").join(file_name).join(game.path_extension);
+  let target = game.profile_path.join("mods/").join(file_name);
   uncompress_archive(&mut source_file,&target, Ownership::Ignore).unwrap();
 }
