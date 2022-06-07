@@ -1,5 +1,5 @@
 # Tux Mod Manager
-TMM is a Linux native mod manager made with the Tauri toolkit, it can, install, load, remove, and deploy mods for both linux native and wine games.
+TMM is a Linux native mod manager made with the Tauri toolkit. It can install, load, remove and deploy mods for both Linux native and WINE games.
 
 ## TMM Roadmap
 - [x] Move the current mod manager logic to rust
@@ -7,6 +7,11 @@ TMM is a Linux native mod manager made with the Tauri toolkit, it can, install, 
 - [x] Make remove button actually work.
 - [x] Add visual indication that a mod is installing
 - [x] Rewrite mod_manager.rs using the steamlocate lib instead of searching for steam directories and games intrusively
+- [ ] Download manager for directly downloading mods from websites (e.g. Nexusmods)
+    - [x] Front-End Design
+    - [x] The actual file download
+    - [ ] Putting the file in the correct location
+    - [ ] Displaying the current downloads in the Front-End
 - [ ] Implement a game launcher for native and proton games (for the OFS)
 - [ ] Implement a per-game load order
 - [ ] Implement mod profiles
