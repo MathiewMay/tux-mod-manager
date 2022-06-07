@@ -1,6 +1,10 @@
 <template>
   <div class="mod-downloader">
     <Download v-for="(download) in downloads" :key="download" :filename="download.filename" :install_status="download.install_status" :progress="download.progress"/>
+    <div class="url-downloader">
+      <input type="text" name="url" id="url">
+      <button @click="download()">Download</button>
+    </div>
   </div>
 </template>
 
@@ -84,6 +88,13 @@ export default {
         }
       ]
     }
+  },
+  methods: {
+    async download() {
+      invoke('download', {url: "https://raw.githubusercontent.com/Erdragh/tux-mod-manager/download-manager/src-tauri/icons/128x128.png"});
+      // invoke('download', {url: "https://download1593.mediafire.com/ljy05cwk2thg/hfuz1ltcj2icuj2/Lux+Orbis-56095-2-5-1645288797.rar"});
+      // invoke('download', {url: "hi"});
+    }
   }
 }
 </script>
@@ -94,5 +105,12 @@ export default {
   color: #fff;
   overflow: auto;
   // padding: 5px;
+  position: relative;
+  .url-downloader {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    margin: 10px;
+  }
 }
 </style>
