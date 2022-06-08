@@ -33,7 +33,7 @@ pub async fn download(url: String, game: Game, window: tauri::Window) {
                 return;
             }
         }
-        match download::http_download(parsed_url, save_path, window, false, false, "0.1.0") {
+        match download::http_download(parsed_url, save_path, window, false, true, "0.1.0") {
             Ok(_) => {},
             Err(e) => {
                 eprintln!("Something went wrong while downloading: {}", e);

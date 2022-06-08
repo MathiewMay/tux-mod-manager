@@ -16,7 +16,8 @@ use crate::mod_downloader::core::{Config, EventsHandler, HttpDownload};
 #[derive(Debug, Serialize, Deserialize)]
 struct Progress {
     filesize: Option<u64>,
-    current: Option<u64>
+    current: Option<u64>,
+    finished: bool
 }
 
 impl Progress {
@@ -270,15 +271,15 @@ impl DefaultEventsHandler {
             Some(p) => {
                 match p.current {
                     Some(val) => {
-                        self.progress = Some(Progress { filesize: p.filesize, current: Some(val + byte_count)})
+                        self.progress = Some(Progress { filesize: p.filesize, current: Some(val + byte_count), finished: false })
                     }
                     None => {
-                        self.progress = Some(Progress { filesize: p.filesize, current: Some(byte_count)})
+                        self.progress = Some(Progress { filesize: p.filesize, current: Some(byte_count), finished: false })
                     }
                 }
             },
             None => {
-                self.progress = Some(Progress { filesize: self.content_len, current: Some(byte_count) });
+                self.progress = Some(Progress { filesize: self.content_len, current: Some(byte_count), finished: false });
             }
         }
     }
@@ -302,9 +303,11 @@ impl EventsHandler for DefaultEventsHandler {
     fn on_content(&mut self, content: &[u8]) -> Fallible<()> {
         let byte_count = content.len() as u64;
         self.file.write_all(content)?;
+
         self.inc(byte_count);
         let json = serde_json::to_string(&self.progress).unwrap();
         self.window.eval(format!("console.log({})", json).as_str());
+
         Ok(())
     }
 
@@ -337,6 +340,19 @@ impl EventsHandler for DefaultEventsHandler {
 
     fn on_finish(&mut self) {
         let st_file = format!("{}/{}.st", self.save_path.as_str(), self.filename);
+        
+        let mut self_progress = &self.progress;
+        match self_progress {
+            Some(p) => {
+                self.progress = Some(Progress { filesize: p.filesize, current: p.current, finished: true})
+            },
+            None => {
+                self.progress = Some(Progress { filesize: self.content_len, current: self.content_len, finished: true });
+            }
+        }
+        let json = serde_json::to_string(&self.progress).unwrap();
+        self.window.eval(format!("console.log({})", json).as_str());
+
         fs::remove_file(st_file);
     }
 
