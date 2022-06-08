@@ -2,7 +2,7 @@
   <div class="mod-downloader">
     <Download v-for="(download) in downloads" :key="download" :filename="download.filename" :install_status="download.install_status" :progress="download.progress"/>
     <div class="url-downloader">
-      <input type="text" name="url" id="url">
+      <input type="url" name="url" id="url" ref="url">
       <button @click="download()">Download</button>
     </div>
   </div>
@@ -92,9 +92,11 @@ export default {
   },
   methods: {
     async download() {
+      console.log(this.$refs.url.value);
       // invoke('download', {url: "https://raw.githubusercontent.com/Erdragh/tux-mod-manager/download-manager/src-tauri/icons/128x128.png"});
-      invoke('download', {url: "https://download1593.mediafire.com/ljy05cwk2thg/hfuz1ltcj2icuj2/Lux+Orbis-56095-2-5-1645288797.rar", game: this.selected_game});
+      // invoke('download', {url: "https://download1593.mediafire.com/ljy05cwk2thg/hfuz1ltcj2icuj2/Lux+Orbis-56095-2-5-1645288797.rar", game: this.selected_game});
       // invoke('download', {url: "hi"});
+      invoke('download', { url: this.$refs.url.value, game: this.selected_game });
     }
   }
 }
@@ -108,10 +110,40 @@ export default {
   // padding: 5px;
   position: relative;
   .url-downloader {
+    background: #121212;
+    border: 1px solid rgba(255,255,255,8%);
+    border-radius: 5px;
     position: fixed;
     bottom: 0;
     right: 0;
-    margin: 10px;
+    margin: 5px;
+    padding: 5px;
+    button {
+      margin: 0;
+      height: 30px;
+    }
+    input[type=url] {
+      user-select: text;
+      -webkit-user-select: text;
+      -webkit-user-drag: auto;
+      height: 30px;
+      line-height: 30px;
+      border-radius: 5px;
+      appearance: none;
+      margin: 0;
+      padding-inline: 5px;
+      border: 2px solid rgba(255,255,255,8%);
+      background: rgba(255,255,255,7%);
+      color: #fff;
+      margin-right: 5px;
+      &:focus {
+        border: 2px solid rgba(255,255,255,14%);
+        background-color: rgba(255,255,255,12%);
+      }
+      &:hover {
+        background-color: rgba(255,255,255,12%);
+      }
+    }
   }
 }
 </style>

@@ -12,7 +12,7 @@ pub fn parse_url(url_as_string: &str) -> Result<Url, ParseError> {
         Ok(url) => Ok(url),
         Err(error) if error == ParseError::RelativeUrlWithoutBase => {
             let url_with_base = format!("{}{}", "http://", url_as_string);
-            Url::parse(url_with_base.as_str())
+            parse_url(url_with_base.as_str())
         }
         Err(error) => Err(error),
     }

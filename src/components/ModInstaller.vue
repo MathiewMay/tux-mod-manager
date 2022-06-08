@@ -55,6 +55,7 @@ export default {
     position: fixed;
     bottom: 0; right: 0;
     margin: 10px;
+    height: 30px;
     padding: 5px;
     padding-inline: 15px;
   }
