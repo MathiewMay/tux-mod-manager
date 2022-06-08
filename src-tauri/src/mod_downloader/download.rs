@@ -11,7 +11,42 @@ use failure::{format_err, Fallible};
 use crate::mod_downloader::utils::{decode_percent_coded_string, get_file_handle};
 use crate::mod_downloader::core::{Config, EventsHandler, HttpDownload};
 
-pub fn http_download(url: Url, save_path: PathBuf, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
+pub struct ProgressTracker {
+    pub filename: String,
+    pub length: Option<u64>,
+    pub current: Option<u64>
+}
+
+impl ProgressTracker {
+    fn inc(&mut self, by: u64) {
+        match self.current {
+            Some(value) => {
+                let new_value = value + by;
+                self.current = Some(new_value);
+            }
+            None => {
+                self.current = Some(by);
+            }
+        }
+    }
+    pub fn get_prog(&mut self) -> Option<(u64, u64)> {
+        match self.length {
+            Some(len) => {
+                match self.current {
+                    Some(cur) => {
+                        Some((len, cur))
+                    },
+                    None => {
+                        Some((len, 0u64))
+                    }
+                }
+            },
+            None => { None }
+        }
+    }
+}
+
+pub fn http_download(url: Url, save_path: PathBuf, progress_tracker: ProgressTracker, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
     let user_agent = format!("TMM/{}", &version);
     let timeout = 30u64;
     let num_workers = 8usize;
@@ -58,7 +93,7 @@ pub fn http_download(url: Url, save_path: PathBuf, resume_download: bool, concur
     };
 
     let mut client = HttpDownload::new(url.clone(), conf.clone());
-    let events_handler = DefaultEventsHandler::new(&filename, &save_path.to_str().unwrap(), resume_download, concurrent_download)?;
+    let events_handler = DefaultEventsHandler::new(&filename, &save_path.to_str().unwrap(), progress_tracker, resume_download, concurrent_download)?;
     client.events_hook(events_handler).download()?;
     Ok(())
 }
@@ -195,6 +230,7 @@ fn get_resume_chunk_offsets(filename: &str, content_len: u64, chunk_size: u64) -
 }
 
 pub struct DefaultEventsHandler {
+    prog_tracker: Option<ProgressTracker>,
     bytes_on_disk: Option<u64>,
     filename: String,
     save_path: String,
@@ -207,6 +243,7 @@ impl DefaultEventsHandler {
     pub fn new(
         filename: &str,
         save_path: &str,
+        progress_tracker: ProgressTracker,
         resume: bool,
         concurrent: bool
     ) -> Fallible<DefaultEventsHandler> {
@@ -218,6 +255,7 @@ impl DefaultEventsHandler {
             None
         };
         Ok(DefaultEventsHandler {
+            prog_tracker: Some(progress_tracker),
             bytes_on_disk: calc_bytes_on_disk(filename)?,
             filename: filename.to_owned(),
             save_path: save_path.to_owned(),
@@ -225,6 +263,30 @@ impl DefaultEventsHandler {
             st_file,
             server_supports_resume: false
         })
+    }
+
+    pub fn create_prog_tracker(&mut self, length: Option<u64>) {
+        let byte_count = if self.server_supports_resume {
+            self.bytes_on_disk
+        } else {
+            None
+        };
+        if let Some(len) = length {
+            let exact = len;
+            println!("Length: {}", exact);
+        } else {
+            println!("Length: unknown");
+        }
+
+        let mut prog_tracker = ProgressTracker {
+            filename: self.filename.clone(),
+            length,
+            current: None
+        };
+        if let Some(count) = byte_count {
+            prog_tracker.inc(count);
+        }
+        self.prog_tracker = Some(prog_tracker);
     }
 }
 
@@ -246,6 +308,9 @@ impl EventsHandler for DefaultEventsHandler {
     fn on_content(&mut self, content: &[u8]) -> Fallible<()> {
         let byte_count = content.len() as u64;
         self.file.write_all(content)?;
+        if let Some(ref mut b) = self.prog_tracker {
+            b.inc(byte_count);
+        }
         Ok(())
     }
 
@@ -254,6 +319,10 @@ impl EventsHandler for DefaultEventsHandler {
         self.file.seek(SeekFrom::Start(offset))?;
         self.file.write_all(buf)?;
         self.file.flush()?;
+        
+        if let Some(ref mut b) = self.prog_tracker {
+            b.inc(byte_count);
+        }
         
         if let Some(ref mut file) = self.st_file {
             writeln!(file, "{}:{}", byte_count, offset)?;
