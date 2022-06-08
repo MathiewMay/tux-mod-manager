@@ -4,14 +4,7 @@ import { ref } from '@vue/reactivity'
 import SideBar from './components/SideBar.vue'
 import MainPanel from './components/MainPanel.vue'
 
-import supported_games_json from './assets/supported-games.json'
-
 export default {
-  data() {
-    return {
-      supported_games: supported_games_json,
-    };
-  },
   setup() {
     const selected_game = ref({})
     function resetSelectedGame(){
@@ -24,12 +17,11 @@ export default {
       this.resetSelectedGame()
     },
     deployMods(){
-      if(this.$refs.mod_manager != undefined)
-        this.$refs.mod_manager.deployMods()
+      this.$refs.main_panel.deployMods();
     },
     async newGameSelected(game) {
-      this.selected_game = game
-      setTimeout(() => { this.$refs.mod_manager.refreshModList() }, 1);
+      this.selected_game = game;
+      this.$refs.main_panel.newGameSelected(game);
     }
   },
   components: {
@@ -42,8 +34,8 @@ export default {
 <template>
   <div class="flex-container">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <SideBar @on-game-selected="newGameSelected" @on-scan-games="newScanGames" @deploying-mods="deployMods()"/>
-    <MainPanel v-if="selected_game.name || true" ref="mod_manager" :selected_game="selected_game"/>
+    <SideBar @deploy-mods="deployMods()" @on-game-selected="newGameSelected" @on-scan-games="newScanGames"/>
+    <MainPanel ref="main_panel" :selected_game="selected_game"/>
   </div>
 </template>
 

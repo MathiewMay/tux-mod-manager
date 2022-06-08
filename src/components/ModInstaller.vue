@@ -4,15 +4,9 @@ import { dialog } from '@tauri-apps/api'
 import { invoke } from '@tauri-apps/api/tauri'
 
 import Mod from './Mod.vue'
-import supported_games_json from '../assets/supported-games.json'
 
 export default {
   props: ['selected_game'],
-  data() {
-    return {
-      supported_games: supported_games_json,
-    };
-  },
   components: {
     Mod,
   },

@@ -28,7 +28,7 @@ export default {
     },
 
     sendDeployMods() {
-      this.$emit('deploying-mods')
+      this.$emit('deploy-mods')
     },
 
     selectNewGame(e, gameEntry){

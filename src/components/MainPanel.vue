@@ -2,22 +2,19 @@
 import { ref } from '@vue/reactivity'
 import { invoke } from '@tauri-apps/api/tauri'
 
-import Mod from './Mod.vue'
+import ModManager from './ModManager.vue'
 import ModInstaller from './ModInstaller.vue'
 import ModDownloader from './ModDownloader.vue'
-
-import supported_games_json from '../assets/supported-games.json'
 
 export default {
   data() {
     return {
-      supported_games: supported_games_json,
       tab: 0
     };
   },
   props: ['selected_game'],
   components: {
-    Mod,
+    ModManager,
     ModInstaller,
     ModDownloader
   },
@@ -30,25 +27,41 @@ export default {
     return {mods, resetMods}
   },
   methods: {
-    async refreshModList(){
-      this.resetMods()
-      const modsEntrys = await invoke('get_mods', {game: this.selected_game})
-      modsEntrys.forEach(modEntry => {
-        const modJson = JSON.parse(modEntry)
-        this.mods[modJson.name] = modJson
-      })
-    },
+    // async refreshModList(){
+    //   this.resetMods()
+    //   const modsEntrys = await invoke('get_mods', {game: this.selected_game})
+    //   modsEntrys.forEach(modEntry => {
+    //     const modJson = JSON.parse(modEntry)
+    //     this.mods[modJson.name] = modJson
+    //   })
+    // },
 
-    async deployMods(){
-      if(this.$refs.mod_ref != undefined){
-        const modList = this.$refs.mod_ref
-        let enabledMod = []
-        for(var i=0; i<modList.length; i++){
-          const mod_ref = modList[i]
-          if(mod_ref.$refs.mod_enabled.checked)
-            enabledMod.push(mod_ref.mod)
+    // async deployMods(){
+    //   console.log("deploying mods");
+    //   if(this.$refs.mod_ref != undefined){
+    //     const modList = this.$refs.mod_ref
+    //     let enabledMod = []
+    //     for(var i=0; i<modList.length; i++){
+    //       const mod_ref = modList[i]
+    //       if(mod_ref.$refs.mod_enabled.checked)
+    //         enabledMod.push(mod_ref.mod)
+    //     }
+    //     invoke('deploy', { mods: enabledMod, game: this.selected_game })
+    //   }
+    // }
+    async newGameSelected(game) {
+      setTimeout(() => { 
+        if (this.$refs.mod_manager != undefined) {
+          this.$refs.mod_manager.refreshModList();
         }
-        invoke('deploy', { mods: enabledMod, game: this.selected_game })
+      }, 1);
+    },
+    async refreshModList() {
+      this.$refs.mod_manager.refreshModList();
+    },
+    async deployMods() {
+      if (this.$refs.mod_manager != undefined) {
+        this.$refs.mod_manager.deployMods();
       }
     }
   }
@@ -58,22 +71,24 @@ export default {
 <template>
 <div class="main-panel">
   <div class="tab-selector">
-    <button @click="tab = 0" :class="{active: tab == 0}">Load Order</button>
-    <button @click="tab = 1" :class="{active: tab == 1}">Downloads</button>
+    <button v-if="selected_game.public_name" @click="tab = 0" :class="{active: tab == 0}">Load Order</button>
+    <button v-if="selected_game.public_name" @click="tab = 1" :class="{active: tab == 1}">Downloads</button>
+    <button @click="tab = 2" :class="{active: tab == 2}">Settings</button>
   </div>
   <div class="tabs">
-    <div class="load-order" :class="{visible: tab == 0}">
+    <div v-if="selected_game.public_name" class="tab load-order" :class="{visible: tab == 0}">
       <div class="mod-order">
-        <li class="mod-list" v-for="(mod) in mods" :key="mod">
-          <Mod ref="mod_ref" :selected_game="selected_game" :mod="mod" :installing="'false'"/>
-        </li>
+        <ModManager ref="mod_manager" :selected_game="selected_game"></ModManager>
       </div>
       <div class="mod-order">
-        <ModInstaller :selected_game="selected_game" @on-mod-installed="refreshModList"/>
+        <ModInstaller @on-mod-installed="refreshModList()" :selected_game="selected_game"/>
       </div>
     </div>
-    <div class="downloads" :class="{visible: tab == 1}">
+    <div v-if="selected_game.public_name" class="tab" :class="{visible: tab == 1}">
       <ModDownloader :selected_game="selected_game"></ModDownloader>
+    </div>
+    <div class="tab" :class="{visible: tab == 2}">
+
     </div>
   </div>
 </div>
@@ -108,7 +123,7 @@ export default {
     }
   }
   .tabs {
-    .load-order, .downloads {
+    .tab {
       overflow: auto;
       display: none;
       &.visible {
