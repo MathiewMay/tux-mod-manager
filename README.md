@@ -11,7 +11,7 @@ TMM is a Linux native mod manager made with the Tauri toolkit. It can install, l
     - [x] Front-End Design
     - [x] The actual file download
     - [x] Putting the file in the correct location
-    - [ ] Selecting the right file
+    - [x] Input download URL in Front-End
     - [ ] Implementing some kind of handshake with the Nexusmods API to allow seamless downlaods via the `Mod Manager Download` button on their website
     - [ ] Displaying the current downloads in the Front-End
 - [ ] Implement a game launcher for native and proton games (for the OFS)
