@@ -37,7 +37,7 @@ pub fn decode_percent_coded_string(data: &str) -> Fallible<String> {
 }
 
 pub fn get_file_handle(filename: &str, save_path: &str, resume_download: bool, append: bool) -> io::Result<File> {
-    let path = format!("{}{}", save_path, filename);
+    let path = format!("{}/{}", save_path, filename);
     println!("Save Path: {}", path);
     if resume_download && Path::new(&path).exists() {
         if append {

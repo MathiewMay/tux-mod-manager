@@ -273,9 +273,8 @@ impl EventsHandler for DefaultEventsHandler {
     }
 
     fn on_finish(&mut self) {
-        match fs::remove_file(&format!("{}.st", self.filename)) {
-            _ => {}
-        }
+        let st_file = format!("{}/{}.st", self.save_path.as_str(), self.filename);
+        fs::remove_file(st_file);
     }
 
     fn on_max_retries(&mut self) {
