@@ -3,6 +3,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::io::{BufRead, BufReader, BufWriter, Seek, SeekFrom, Write};
 
+use serde::{Deserialize, Serialize};
+
 use url::Url;
 use reqwest::header::{self, HeaderMap, HeaderValue};
 use reqwest::blocking::Client;
@@ -11,52 +13,39 @@ use failure::{format_err, Fallible};
 use crate::mod_downloader::utils::{decode_percent_coded_string, get_file_handle};
 use crate::mod_downloader::core::{Config, EventsHandler, HttpDownload};
 
-pub struct ProgressTracker {
-    pub filename: String,
-    pub length: Option<u64>,
-    pub current: Option<u64>
+#[derive(Debug, Serialize, Deserialize)]
+struct Progress {
+    filesize: Option<u64>,
+    current: Option<u64>
 }
 
-impl ProgressTracker {
+impl Progress {
     fn inc(&mut self, by: u64) {
         match self.current {
             Some(value) => {
-                let new_value = value + by;
-                self.current = Some(new_value);
-            }
+                self.current = Some(value + by);
+            },
             None => {
                 self.current = Some(by);
             }
         }
     }
-    pub fn get_prog(&mut self) -> Option<(u64, u64)> {
-        match self.length {
-            Some(len) => {
-                match self.current {
-                    Some(cur) => {
-                        Some((len, cur))
-                    },
-                    None => {
-                        Some((len, 0u64))
-                    }
-                }
-            },
-            None => { None }
-        }
-    }
 }
 
-pub fn http_download(url: Url, save_path: PathBuf, progress_tracker: ProgressTracker, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
+pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
     let user_agent = format!("TMM/{}", &version);
     let timeout = 30u64;
     let num_workers = 8usize;
     let headers = request_headers(&url, timeout, "TMM/0.1.0")?;
     let filename = gen_filename(&url, Some(&headers));
 
-    let content_len = if let Some(val) = headers.get("Content-Length") {
-        val.to_str()?.parse::<u64>().unwrap_or(0)
-    } else {
-        0u64
+    let content_len = match headers.get("Content-Length") {
+        Some(val) => {
+            Some(val.to_str()?.parse::<u64>().unwrap_or(0))
+        },
+        _ => {
+            None
+        }
     };
 
     let headers = prep_headers(&filename, resume_download, &user_agent)?;
@@ -64,12 +53,16 @@ pub fn http_download(url: Url, save_path: PathBuf, progress_tracker: ProgressTra
     let state_file_exists = Path::new(&format!("{}.st", filename)).exists();
     let chunk_size = 512_000u64;
 
-    let chunk_offsets = 
-        if state_file_exists && resume_download && concurrent_download && content_len != 0 {
-            Some(get_resume_chunk_offsets(&filename, content_len, chunk_size)?)
-        } else {
-            None
-        };
+    let chunk_offsets = match content_len {
+        Some(val) => {
+            if state_file_exists && resume_download && concurrent_download && val != 0 {
+                Some(get_resume_chunk_offsets(&filename, val, chunk_size)?)
+            } else {
+                None
+            }
+        },
+        None => { None }
+    };
 
     let bytes_on_disk = if resume_download {
         calc_bytes_on_disk(&filename)?
@@ -88,12 +81,13 @@ pub fn http_download(url: Url, save_path: PathBuf, progress_tracker: ProgressTra
         max_retries: 100,
         num_workers,
         bytes_on_disk,
+        content_len,
         chunk_offsets,
         chunk_size,
     };
 
     let mut client = HttpDownload::new(url.clone(), conf.clone());
-    let events_handler = DefaultEventsHandler::new(&filename, &save_path.to_str().unwrap(), progress_tracker, resume_download, concurrent_download)?;
+    let events_handler = DefaultEventsHandler::new(&filename, &save_path.to_str().unwrap(), window, content_len, resume_download, concurrent_download)?;
     client.events_hook(events_handler).download()?;
     Ok(())
 }
@@ -230,8 +224,10 @@ fn get_resume_chunk_offsets(filename: &str, content_len: u64, chunk_size: u64) -
 }
 
 pub struct DefaultEventsHandler {
-    prog_tracker: Option<ProgressTracker>,
+    window: tauri::Window,
+    progress: Option<Progress>,
     bytes_on_disk: Option<u64>,
+    content_len: Option<u64>,
     filename: String,
     save_path: String,
     file: BufWriter<fs::File>,
@@ -243,7 +239,8 @@ impl DefaultEventsHandler {
     pub fn new(
         filename: &str,
         save_path: &str,
-        progress_tracker: ProgressTracker,
+        window: tauri::Window,
+        content_len: Option<u64>,
         resume: bool,
         concurrent: bool
     ) -> Fallible<DefaultEventsHandler> {
@@ -255,8 +252,10 @@ impl DefaultEventsHandler {
             None
         };
         Ok(DefaultEventsHandler {
-            prog_tracker: Some(progress_tracker),
+            window,
+            progress: None,
             bytes_on_disk: calc_bytes_on_disk(filename)?,
+            content_len,
             filename: filename.to_owned(),
             save_path: save_path.to_owned(),
             file: BufWriter::new(get_file_handle(&filename, save_path, resume, !concurrent)?),
@@ -265,28 +264,23 @@ impl DefaultEventsHandler {
         })
     }
 
-    pub fn create_prog_tracker(&mut self, length: Option<u64>) {
-        let byte_count = if self.server_supports_resume {
-            self.bytes_on_disk
-        } else {
-            None
-        };
-        if let Some(len) = length {
-            let exact = len;
-            println!("Length: {}", exact);
-        } else {
-            println!("Length: unknown");
+    pub fn inc(&mut self, byte_count: u64) {
+        let mut self_progress = &self.progress;
+        match self_progress {
+            Some(p) => {
+                match p.current {
+                    Some(val) => {
+                        self.progress = Some(Progress { filesize: p.filesize, current: Some(val + byte_count)})
+                    }
+                    None => {
+                        self.progress = Some(Progress { filesize: p.filesize, current: Some(byte_count)})
+                    }
+                }
+            },
+            None => {
+                self.progress = Some(Progress { filesize: self.content_len, current: Some(byte_count) });
+            }
         }
-
-        let mut prog_tracker = ProgressTracker {
-            filename: self.filename.clone(),
-            length,
-            current: None
-        };
-        if let Some(count) = byte_count {
-            prog_tracker.inc(count);
-        }
-        self.prog_tracker = Some(prog_tracker);
     }
 }
 
@@ -308,9 +302,9 @@ impl EventsHandler for DefaultEventsHandler {
     fn on_content(&mut self, content: &[u8]) -> Fallible<()> {
         let byte_count = content.len() as u64;
         self.file.write_all(content)?;
-        if let Some(ref mut b) = self.prog_tracker {
-            b.inc(byte_count);
-        }
+        self.inc(byte_count);
+        let json = serde_json::to_string(&self.progress).unwrap();
+        self.window.eval(format!("console.log({})", json).as_str());
         Ok(())
     }
 
@@ -319,10 +313,6 @@ impl EventsHandler for DefaultEventsHandler {
         self.file.seek(SeekFrom::Start(offset))?;
         self.file.write_all(buf)?;
         self.file.flush()?;
-        
-        if let Some(ref mut b) = self.prog_tracker {
-            b.inc(byte_count);
-        }
         
         if let Some(ref mut file) = self.st_file {
             writeln!(file, "{}:{}", byte_count, offset)?;
@@ -333,6 +323,10 @@ impl EventsHandler for DefaultEventsHandler {
                 Ok(_) => {}
             }
         }
+        
+        self.inc(byte_count);
+        let json = serde_json::to_string(&self.progress).unwrap();
+        self.window.eval(format!("console.log({})", json).as_str());
 
         Ok(())
     }

@@ -6,8 +6,13 @@
 mod mod_manager;
 mod mod_downloader;
 
+use mod_downloader::Download;
+
+struct Downloads(Vec<Download>);
+
 fn main() {
   tauri::Builder::default()
+    .manage(Downloads(Vec::new()))
     .invoke_handler(tauri::generate_handler![
       mod_manager::uncompress, 
       mod_manager::scan_games, 

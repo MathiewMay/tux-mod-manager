@@ -80,6 +80,7 @@ dependencies = [
  "threadpool",
  "tokio",
  "url",
+ "webkit2gtk",
 ]
 
 [[package]]

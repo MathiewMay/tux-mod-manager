@@ -25,6 +25,7 @@ pub struct Config {
     pub max_retries: i32,
     pub num_workers: usize,
     pub bytes_on_disk: Option<u64>,
+    pub content_len: Option<u64>,
     pub chunk_offsets: Option<Vec<(u64, u64)>>,
     pub chunk_size: u64,
 }
