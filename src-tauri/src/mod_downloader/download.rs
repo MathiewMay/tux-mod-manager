@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use std::io::{BufRead, BufReader, BufWriter, Seek, SeekFrom, Write};
 
 use serde::{Deserialize, Serialize};
-
 use url::Url;
 use reqwest::header::{self, HeaderMap, HeaderValue};
 use reqwest::blocking::Client;
@@ -15,6 +14,7 @@ use crate::mod_downloader::core::{Config, EventsHandler, HttpDownload};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Progress {
+    filename: String,
     filesize: Option<u64>,
     current: Option<u64>,
     finished: bool
@@ -39,6 +39,8 @@ pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume
     let num_workers = 8usize;
     let headers = request_headers(&url, timeout, "TMM/0.1.0")?;
     let filename = gen_filename(&url, Some(&headers));
+
+    window.emit("download-started", &filename);
 
     let content_len = match headers.get("Content-Length") {
         Some(val) => {
@@ -271,15 +273,15 @@ impl DefaultEventsHandler {
             Some(p) => {
                 match p.current {
                     Some(val) => {
-                        self.progress = Some(Progress { filesize: p.filesize, current: Some(val + byte_count), finished: false })
+                        self.progress = Some(Progress { filename: p.filename.as_str().to_owned(), filesize: p.filesize, current: Some(val + byte_count), finished: false })
                     }
                     None => {
-                        self.progress = Some(Progress { filesize: p.filesize, current: Some(byte_count), finished: false })
+                        self.progress = Some(Progress { filename: p.filename.as_str().to_owned(), filesize: p.filesize, current: Some(byte_count), finished: false })
                     }
                 }
             },
             None => {
-                self.progress = Some(Progress { filesize: self.content_len, current: Some(byte_count), finished: false });
+                self.progress = Some(Progress { filename: self.filename.as_str().to_owned(), filesize: self.content_len, current: Some(byte_count), finished: false });
             }
         }
     }
@@ -305,8 +307,7 @@ impl EventsHandler for DefaultEventsHandler {
         self.file.write_all(content)?;
 
         self.inc(byte_count);
-        let json = serde_json::to_string(&self.progress).unwrap();
-        self.window.eval(format!("console.log({})", json).as_str());
+        self.window.emit("download-progress", &self.progress);
 
         Ok(())
     }
@@ -328,8 +329,7 @@ impl EventsHandler for DefaultEventsHandler {
         }
         
         self.inc(byte_count);
-        let json = serde_json::to_string(&self.progress).unwrap();
-        self.window.eval(format!("console.log({})", json).as_str());
+        self.window.emit("download-progress", &self.progress);
 
         Ok(())
     }
@@ -344,14 +344,13 @@ impl EventsHandler for DefaultEventsHandler {
         let mut self_progress = &self.progress;
         match self_progress {
             Some(p) => {
-                self.progress = Some(Progress { filesize: p.filesize, current: p.current, finished: true})
+                self.progress = Some(Progress { filename: self.filename.as_str().to_owned(), filesize: p.filesize, current: p.current, finished: true})
             },
             None => {
-                self.progress = Some(Progress { filesize: self.content_len, current: self.content_len, finished: true });
+                self.progress = Some(Progress { filename: self.filename.as_str().to_owned(), filesize: self.content_len, current: self.content_len, finished: true });
             }
         }
-        let json = serde_json::to_string(&self.progress).unwrap();
-        self.window.eval(format!("console.log({})", json).as_str());
+        self.window.emit("download-finished", &self.progress).unwrap();
 
         fs::remove_file(st_file);
     }

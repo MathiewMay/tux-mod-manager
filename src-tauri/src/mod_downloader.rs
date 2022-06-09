@@ -4,6 +4,8 @@ pub mod core;
 
 use tokio::runtime::Handle;
 
+use tauri::{ Window };
+
 use crate::mod_manager::game::Game;
 
 enum UrlParsed<E> {
@@ -21,7 +23,15 @@ pub struct Download {
 //to look in the documentation. Here is where I found it anyways:
 //https://medium.com/@marm.nakamura/trying-to-the-tauri-gui-on-rust-4-state-management-on-the-rust-side-8899bda08936 (at 22:28 on June 8th 2022)
 #[tauri::command]
-pub async fn download(url: String, game: Game, window: tauri::Window) {
+pub async fn download(url: String, game: Game, window: Window) {
+    println!("Window label: {}", &window.label());
+
+    let id = window.listen("hello", |event| {
+        println!("got window-event-name with payload {:?}", event.payload());
+    });
+
+    window.unlisten(id);
+
     let handle = Handle::current();
     handle.spawn_blocking(move || {
         let save_path = game.profile_path.join("downloads").clone();

@@ -1,6 +1,6 @@
 <template>
   <div class="mod-downloader">
-    <Download v-for="(download) in downloads" :key="download" :filename="download.filename" :install_status="download.install_status" :progress="download.progress"/>
+    <Download v-for="(download) in downloads" ref="download" :key="download" :filename="download.filename" :install_status="download.install_status" :progress="download.progress"/>
     <div class="url-downloader">
       <input type="url" name="url" id="url" ref="url">
       <button @click="download()">Download</button>
@@ -10,7 +10,7 @@
 
 <script>
 import { ref } from '@vue/reactivity'
-import { dialog } from '@tauri-apps/api'
+import { event } from '@tauri-apps/api'
 import { invoke } from '@tauri-apps/api/tauri'
 
 import Download from './Download.vue'
@@ -89,6 +89,17 @@ export default {
         }
       ]
     }
+  },
+  setup() {
+    event.listen("download-started", event => {
+      console.log("Download Started: " + event.payload)
+    })
+    event.listen("download-progress", event => {
+      console.log("Download Progress: " + event.payload.filename + " " + event.payload.current + "/" + event.payload.filesize);
+    });
+    event.listen("download-finished", event => {
+      console.log("Download Finished: " + event.payload.filename);
+    });
   },
   methods: {
     async download() {

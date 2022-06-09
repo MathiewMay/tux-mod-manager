@@ -56,7 +56,6 @@ export default {
     <button class="run-button">Run</button>
     <button class="deploy-button" @click="sendDeployMods()">Deploy</button>
   </div>
-  <!-- <div class="separator-right"></div> -->
 </div>
 </template>
   

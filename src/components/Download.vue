@@ -17,8 +17,9 @@
 </template>
 
 <script>
+
 export default {
-    props: ['filename', 'install_status', 'progress']
+  props: ['filename', 'install_status', 'progress']
 }
 </script>
 
