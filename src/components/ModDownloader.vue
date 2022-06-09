@@ -43,12 +43,15 @@ export default {
       );
     })
     event.listen("download-progress", event => {
-      // console.log("Download Progress: " + event.payload.filename + " " + event.payload.current + "/" + event.payload.filesize);
+      console.log("Download Progress: " + event.payload.filename + " " + event.payload.current + "/" + event.payload.filesize);
       downloads.value.forEach(element => {
         if (element.filename == event.payload.filename){
           if (event.payload.filesize != null) {
-            var temp = event.payload.current / event.payload.filesize * 100;
-            if (element.progress - temp > 1) {
+            var dif = event.payload.current / event.payload.filesize * 100;
+            console.log("dif: " + dif);
+            if (dif - element.progress > .1) {
+              let temp = Math.floor(dif * 10) / 10;
+              console.log("temp: " + temp);
               element.progress = temp;
             }
           } else {
