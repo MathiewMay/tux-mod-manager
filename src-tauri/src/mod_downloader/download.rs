@@ -40,8 +40,6 @@ pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume
     let headers = request_headers(&url, timeout, "TMM/0.1.0")?;
     let filename = gen_filename(&url, Some(&headers));
 
-    window.emit("download-started", &filename);
-
     let content_len = match headers.get("Content-Length") {
         Some(val) => {
             Some(val.to_str()?.parse::<u64>().unwrap_or(0))
@@ -88,6 +86,13 @@ pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume
         chunk_offsets,
         chunk_size,
     };
+
+    let file_handle = &save_path.join(&filename);
+    let exists = file_handle.exists();
+    if exists {
+        window.emit("already-downloaded", &filename);
+        return Ok(());
+    }
 
     let mut client = HttpDownload::new(url.clone(), conf.clone());
     let events_handler = DefaultEventsHandler::new(&filename, &save_path.to_str().unwrap(), window, content_len, resume_download, concurrent_download)?;
@@ -249,19 +254,26 @@ impl DefaultEventsHandler {
     ) -> Fallible<DefaultEventsHandler> {
         let st_file = if concurrent {
             Some(BufWriter::new(get_file_handle(
-                &format!("{}.st", filename), save_path, resume, true
+                &format!("{}.st", filename), save_path, &resume, &true
             )?))
         } else {
             None
         };
+        let progress = Progress {
+            filename: filename.to_owned(),
+            filesize: content_len,
+            current: None,
+            finished: false,
+        };
+        window.emit("download-started", &progress);
         Ok(DefaultEventsHandler {
             window,
-            progress: None,
+            progress: Some(progress),
             bytes_on_disk: calc_bytes_on_disk(filename)?,
             content_len,
             filename: filename.to_owned(),
             save_path: save_path.to_owned(),
-            file: BufWriter::new(get_file_handle(&filename, save_path, resume, !concurrent)?),
+            file: BufWriter::new(get_file_handle(&filename, save_path, &resume, &!concurrent)?),
             st_file,
             server_supports_resume: false
         })

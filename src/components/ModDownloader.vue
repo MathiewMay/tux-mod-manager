@@ -10,7 +10,7 @@
 
 <script>
 import { ref } from '@vue/reactivity'
-import { event } from '@tauri-apps/api'
+import { event, dialog } from '@tauri-apps/api'
 import { invoke } from '@tauri-apps/api/tauri'
 
 import Download from './Download.vue'
@@ -19,92 +19,67 @@ export default {
   components: {
     Download
   },
-  data() {
-    return {
-      downloads: [
-        {
-          filename: "mod_that_is_downloading-v1.18.2.7z",
-          install_status: 0,
-          progress: 100
-        },
-        {
-          filename: "AnotherDownload-CBBE-Bodyslide.rar",
-          install_status: 0,
-          progress: 90
-        },
-        {
-          filename: "HelloThere AlternateStartAddon.zip",
-          install_status: 0,
-          progress: 65
-        },
-        {
-          filename: "OpenDownloadSimulator-3.32.7z",
-          install_status: 0,
-          progress: 69
-        },
-        {
-          filename: "a_very_long_modname_for_testing-Alpha-3b.rar",
-          install_status: 0,
-          progress: 89
-        },
-        {
-          filename: "ImWatchingDougDoug-right-now-twitch.tv",
-          install_status: 0,
-          progress: 99
-        },
-        {
-          filename: "DownloadTest-v2.7z",
-          install_status: 0,
-          progress: 1
-        },
-        {
-          filename: "Downloaded Mod V.12",
-          install_status: 1,
-          progress: 100
-        },
-        {
-          filename: "Success_in_download-3.3",
-          install_status: 1,
-          progress: 100
-        },
-        {
-          filename: "File_is_here.zip",
-          install_status: 1,
-          progress: 100
-        },
-        {
-          filename: "installed-mod-30",
-          install_status: 2,
-          progress: 100
-        },
-        {
-          filename: "hey-this-is-installed.rar",
-          install_status: 2,
-          progress: 100
-        },
-        {
-          filename: "yo-done.zip",
-          install_status: 2,
-          progress: 100
-        }
-      ]
-    }
-  },
   setup() {
+    const downloads = ref([
+      {
+        filename: "hi",
+        install_status: 1,
+        progress: 0
+      }
+    ]);
+
     event.listen("download-started", event => {
-      console.log("Download Started: " + event.payload)
+      // console.log("Download Started: " + event.payload.filename)
+      let install_status = 1;
+      if (event.payload.filesize != null) {
+        install_status = 0;
+      }
+      downloads.value.push(
+        {
+          filename: event.payload.filename,
+          install_status: install_status,
+          progress: 0
+        }
+      );
     })
     event.listen("download-progress", event => {
-      console.log("Download Progress: " + event.payload.filename + " " + event.payload.current + "/" + event.payload.filesize);
+      // console.log("Download Progress: " + event.payload.filename + " " + event.payload.current + "/" + event.payload.filesize);
+      downloads.value.forEach(element => {
+        if (element.filename == event.payload.filename){
+          if (event.payload.filesize != null) {
+            var temp = event.payload.current / event.payload.filesize * 100;
+            if (element.progress - temp > 1) {
+              element.progress = temp;
+            }
+          } else {
+            var temp = event.payload.current;
+            if ((temp / element.progress) > 1.01) {
+              element.progress = temp;
+            }
+          }
+        }
+      });
     });
     event.listen("download-finished", event => {
-      console.log("Download Finished: " + event.payload.filename);
+      // console.log("Download Finished: " + event.payload.filename);
+      downloads.value.forEach(element => {
+        if (element.filename == event.payload.filename){
+          element.install_status = 2;
+        }
+      });
     });
+    event.listen("already-downloaded", event => {
+      dialog.message("You have already downloaded this file: '" + event.payload + "'");
+    })
+    return { downloads }
   },
   methods: {
     async download() {
       console.log(this.$refs.url.value);
       invoke('download', { url: this.$refs.url.value, game: this.selected_game });
+    },
+    test() {
+      console.log(1);
     }
   }
 }

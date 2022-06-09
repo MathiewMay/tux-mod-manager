@@ -1,17 +1,19 @@
 <template>
 <div class="download">
-  <i v-if="install_status == 2" class="fa fa-duotone fa-check"></i>
-  <i v-if="install_status == 1" class="fa fa-duotone fa-download"></i>
-  <i v-if="install_status == 0" class="fa fa-duotone fa-arrows-rotate fa-spin"></i>
+  <i v-if="install_status == 3" class="fa fa-duotone fa-check"></i>
+  <i v-if="install_status == 2" class="fa fa-duotone fa-download"></i>
+  <i v-if="install_status == 0 || install_status == 1" class="fa fa-duotone fa-arrows-rotate fa-spin"></i>
   <div class="download-name">{{ filename }}</div>
-  <div v-if="install_status == 0" class="download-progress">
-    <div class="progress-label">{{ progress }}%</div>
-    <progress class="progress" max="100" :value="progress"></progress>
+  <div v-if="install_status == 0 || install_status == 1" class="download-progress">
+    <div v-if="install_status == 0" class="progress-label">{{ progress }}%</div>
+    <div v-if="install_status == 1" class="progress-label">{{ progress }}</div>
+    <progress class="progress" max="100" v-if="install_status == 0" :value="progress"></progress>
+    <progress class="progress" max="100" v-if="install_status == 1"></progress>
   </div>
   <div class="download-options">
-    <button v-if="install_status == 0">Cancel</button>
-    <button v-if="install_status == 1 || install_status == 2">Remove</button>
-    <button v-if="install_status == 1">Install</button>
+    <button v-if="install_status == 0 || install_status == 1">Cancel</button>
+    <button v-if="install_status == 2 || install_status == 3">Remove</button>
+    <button v-if="install_status == 2">Install</button>
   </div>
 </div>
 </template>
@@ -63,16 +65,6 @@ export default {
       border-radius: 5px;
       overflow: hidden;
       position: relative;
-      &:before {
-        content: '80%';
-        position: absolute;
-        right: 0;
-        top: -125%;
-        color: white;
-        background: red;
-        width: 30px;
-        height: 30px;
-      }
       &::-webkit-progress-bar {
         background-color: rgba(255,255,255,7%);
         // box-shadow: inset 0 0 15px #00000055;
@@ -95,6 +87,11 @@ export default {
         -webkit-animation: animate-stripes 2s linear infinite;
         animation: animate-stripes 2s linear infinite;
         border-radius: 5px;
+      }
+    }
+    progress:not([value]) {
+      &::-webkit-progress-value {
+        width: 100%;
       }
     }
   }
