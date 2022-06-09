@@ -20,13 +20,7 @@ export default {
     Download
   },
   setup() {
-    const downloads = ref([
-      {
-        filename: "hi",
-        install_status: 1,
-        progress: 0
-      }
-    ]);
+    const downloads = ref([]);
 
     event.listen("download-started", event => {
       // console.log("Download Started: " + event.payload.filename)
