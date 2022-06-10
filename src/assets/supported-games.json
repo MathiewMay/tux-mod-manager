@@ -1,4 +1,11 @@
 {
+  "22330":{
+    "public_name": "The Elder Scrolls IV: Oblivion",
+    "binaryPath": "/Oblivion.exe",
+    "extensionsPath": {
+      "**": "/Data/"
+    }
+  },
   "489830": {
     "public_name": "Skyrim Special Edition",
     "binaryPath": "/SkyrimSE.exe",
@@ -11,6 +18,27 @@
     "binaryPath": "/bin/x64/Cyberpunk2077.exe",
     "extensionsPath": {
       "**": ""
+    }
+  },
+  "22370":{
+    "public_name": "Fallout 3",
+    "binaryPath": "/Fallout3.exe",
+    "extensionsPath": {
+      "**": "/Data/"
+    }
+  },
+    "22380": {
+    "public_name": "Fallout: New Vegas",
+    "binaryPath": "/FalloutNV.exe",
+    "extensionsPath": {
+      "**": "/Data/"
+    }
+  },
+    "377160":{
+    "public_name": "Fallout 4",
+    "binaryPath": "/Fallout4.exe",
+    "extensionsPath": {
+      "**": "/Data/"
     }
   }
 }
