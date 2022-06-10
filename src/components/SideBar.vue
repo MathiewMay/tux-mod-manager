@@ -2,14 +2,12 @@
 import { reactive } from '@vue/reactivity'
 import { invoke } from '@tauri-apps/api/tauri'
 
-import supported_games from '../assets/supported_games.json'
-import known_path_extensions from '../assets/known_path_extensions.json'
+import supported_games from '../assets/supported-games.json'
 
 export default {
   data() {
     return {
-      supported_games: supported_games,
-      known_path_extensions: known_path_extensions,
+      supported_games 
     };
   },
   setup() {
@@ -18,7 +16,7 @@ export default {
   },
   methods: {
     async scanGames() {
-      await invoke('scan_games', { supportedGames: supported_games, knownPathExtensions: known_path_extensions }).then((entrys) => {
+      await invoke('scan_games', { supportedGames: supported_games }).then((entrys) => {
         entrys.forEach(element => {
           let game = JSON.parse(element)
           // if(this.supported_games[game.appid]){

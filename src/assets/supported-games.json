@@ -1,44 +1,93 @@
-{
-  "22330":{
+[
+  {
+    "app_id": 22330,
     "public_name": "The Elder Scrolls IV: Oblivion",
-    "binaryPath": "/Oblivion.exe",
-    "extensionsPath": {
-      "**": "/Data/"
-    }
+    "known_binaries": [
+      {
+        "name": "Oblivion",
+        "use_compatibility": true,
+        "binary_path": "/Oblivion.exe",
+        "startin_path": "",
+        "output_mod": "overwrite"
+      }
+    ],
+    "path_extension": "/Data/"
   },
-  "489830": {
+  {
+    "app_id": 489830,
     "public_name": "Skyrim Special Edition",
-    "binaryPath": "/SkyrimSE.exe",
-    "extensionsPath": {
-      "**": "/Data/"
-    }
+    "known_binaries": [
+      {
+        "name": "SkyrimSE",
+        "use_compatibility": true,
+        "binary_path": "/SkyrimSE.exe",
+        "startin_path": "",
+        "output_mod": "overwrite"
+      },
+      {
+        "name": "SkyrimSELauncher",
+        "use_compatibility": true,
+        "binary_path": "/SkyrimSELauncher.exe",
+        "startin_path": "",
+        "output_mod": "overwrite"
+      }
+    ],
+    "path_extension": "/Data/"
   },
-  "1091500": {
+  {
+    "app_id": 1091500,
     "public_name": "Cyberpunk 2077",
-    "binaryPath": "/bin/x64/Cyberpunk2077.exe",
-    "extensionsPath": {
-      "**": ""
-    }
+    "known_binaries": [
+      {
+        "name": "Cyberpunk2077",
+        "use_compatibility": true,
+        "binary_path": "/bin/x64/Cyberpunk2077.exe",
+        "startin_path": "",
+        "output_mod": "overwrite"
+      }
+    ],
+    "path_extension": ""
   },
-  "22370":{
+  {
+    "app_id": 22370,
     "public_name": "Fallout 3",
-    "binaryPath": "/Fallout3.exe",
-    "extensionsPath": {
-      "**": "/Data/"
-    }
+    "known_binaries": [
+      {
+        "name": "Fallout3",
+        "use_compatibility": true,
+        "binary_path": "/Fallout3.exe",
+        "startin_path": "",
+        "output_mod": "overwrite"
+      }
+    ],
+    "path_extension": "/Data/"
   },
-    "22380": {
+  {
+    "app_id": 22380,
     "public_name": "Fallout: New Vegas",
-    "binaryPath": "/FalloutNV.exe",
-    "extensionsPath": {
-      "**": "/Data/"
-    }
+    "known_binaries": [
+      {
+        "name": "FalloutNV",
+        "use_compatibility": true,
+        "binary_path": "/FalloutNV.exe",
+        "startin_path": "",
+        "output_mod": "overwrite"
+      }
+    ],
+    "path_extension": "/Data/"
   },
-    "377160":{
+  {
+    "app_id": 337160,
     "public_name": "Fallout 4",
-    "binaryPath": "/Fallout4.exe",
-    "extensionsPath": {
-      "**": "/Data/"
-    }
+    "known_binaries": [
+      {
+        "name": "Fallout4",
+        "use_compatibility": true,
+        "binary_path": "/Fallout4.exe",
+        "startin_path": "",
+        "output_mod": "overwrite"
+      }
+    ],
+    "path_extension": "/Data/"
   }
-}
+]

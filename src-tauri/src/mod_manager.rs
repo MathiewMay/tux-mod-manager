@@ -1,4 +1,4 @@
-use std::{path::PathBuf, path::Path, fs};
+use std::{path::PathBuf, path::Path, collections::HashMap, fs};
 
 use serde::{Deserialize, Serialize};
 use dirs;
@@ -33,8 +33,16 @@ pub fn deploy(mods: Vec<Mod>, game: Game) {
   ofs.exec();
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct SupportedGame {
+  app_id: u32,
+  public_name: String,
+  known_binaries: Vec<Executable>,
+  path_extension: PathBuf
+}
+
 #[tauri::command]
-pub fn scan_games(supported_games: Vec<u32>, known_path_extensions: Vec<(u32, PathBuf)>) -> Vec<String> {
+pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
   let mut steam_games: Vec<String> = Vec::new();
   let steam_apps = SteamDir::locate().unwrap().apps().clone();
 
@@ -54,26 +62,28 @@ pub fn scan_games(supported_games: Vec<u32>, known_path_extensions: Vec<(u32, Pa
     let path_to_game_config = Path::new(&pathbuf_to_game_config);
     let already_found = path_to_game_config.exists();
 
+    let mut supported = HashMap::new();
+    for game in &supported_games {
+      supported.insert(
+        game.app_id,
+        game
+      );
+    }
+
     if already_found {
       // println!("There already exists a config for game: '{}'", app.name.as_ref().unwrap());
       let json = fs::read_to_string(path_to_game_config).unwrap();
       steam_games.push(json);
-    } else if !supported_games.contains(&app.appid) {
+    } else if !supported.contains_key(&app.appid) {
       // println!("Game: {} not currently supported.", app.name.as_ref().unwrap());
     } else {
       let profile_path = dirs::config_dir().unwrap().join("tmm/profiles/").join(format!("{}", app.appid));
       let components_count = app.path.to_path_buf().components().count();
       let work_path = app.path.to_path_buf().components().take(components_count-4).collect::<PathBuf>().join([".tmm_work/", app.appid.to_string().as_str()].join(""));
       println!("Game work_directory: {}", &work_path.to_str().unwrap());
-      let mut path_extension: PathBuf = PathBuf::new();
-      for pair in &known_path_extensions {
-        let (id, extension) = pair;
-        if id == &app.appid {
-          path_extension = extension.to_owned();
-          break;
-        }
-      }
-      let executables: Vec<Executable> = Vec::new();
+      let path_extension = supported.get(&app.appid).unwrap().path_extension.clone();
+      // let path_extension = PathBuf::new();
+      let executables: Vec<Executable> = supported.get(&app.appid).unwrap().known_binaries.clone();
       let game = Game {
         public_name: app.name.as_ref().unwrap().to_owned(),
         appid: app.appid,

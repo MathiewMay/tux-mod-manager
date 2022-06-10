@@ -16,7 +16,7 @@ pub struct Game {
     pub executables: Vec<Executable>
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Executable {
     pub name: String,
     pub use_compatibility: bool,
