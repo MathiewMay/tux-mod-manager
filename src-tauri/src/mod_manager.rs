@@ -80,7 +80,7 @@ pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
       let profile_path = dirs::config_dir().unwrap().join("tmm/profiles/").join(format!("{}", app.appid));
       let components_count = app.path.to_path_buf().components().count();
       let work_path = app.path.to_path_buf().components().take(components_count-4).collect::<PathBuf>().join([".tmm_work/", app.appid.to_string().as_str()].join(""));
-      println!("Game work_directory: {}", &work_path.to_str().unwrap());
+      // println!("Game work_directory: {}", &work_path.to_str().unwrap());
       let path_extension = supported.get(&app.appid).unwrap().path_extension.clone();
       // let path_extension = PathBuf::new();
       let executables: Vec<Executable> = supported.get(&app.appid).unwrap().known_binaries.clone();
