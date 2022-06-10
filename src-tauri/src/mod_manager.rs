@@ -34,17 +34,17 @@ pub fn deploy(mods: Vec<Mod>, game: Game) {
 }
 
 #[tauri::command]
-pub fn scan_games() -> Vec<String> {
+pub fn scan_games(supported_games: Vec<u32>, known_path_extensions: Vec<(u32, PathBuf)>) -> Vec<String> {
   let mut steam_games: Vec<String> = Vec::new();
   let steam_apps = SteamDir::locate().unwrap().apps().clone();
 
-  let known_path_extensions_json = dirs::config_dir().unwrap().join("tmm/known_path_extensions.json");
-  let path_extension_contents = fs::read_to_string(known_path_extensions_json).unwrap();
-  let known_path_extensions: Vec<(u32, PathBuf)> = serde_json::from_str(path_extension_contents.as_str()).unwrap();
+  // let known_path_extensions_json = dirs::config_dir().unwrap().join("tmm/known_path_extensions.json");
+  // let path_extension_contents = fs::read_to_string(known_path_extensions_json).unwrap();
+  // let known_path_extensions: Vec<(u32, PathBuf)> = serde_json::from_str(path_extension_contents.as_str()).unwrap();
 
-  let supported_games_json = dirs::config_dir().unwrap().join("tmm/supported_games.json");
-  let supported_games_contents = fs::read_to_string(supported_games_json).unwrap();
-  let supported_games: Vec<u32> = serde_json::from_str(supported_games_contents.as_str()).unwrap();
+  // let supported_games_json = dirs::config_dir().unwrap().join("tmm/supported_games.json");
+  // let supported_games_contents = fs::read_to_string(supported_games_json).unwrap();
+  // let supported_games: Vec<u32> = serde_json::from_str(supported_games_contents.as_str()).unwrap();
 
   // println!("Known Path Extensions: {:?}", known_path_extensions);
   for key in steam_apps.keys() {
