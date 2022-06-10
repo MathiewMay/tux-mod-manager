@@ -38,11 +38,11 @@ pub fn scan_games() -> Vec<String> {
   let mut steam_games: Vec<String> = Vec::new();
   let steam_apps = SteamDir::locate().unwrap().apps().clone();
 
-  let mut known_path_extensions_json = dirs::config_dir().unwrap().join("tmm_stage/known_path_extensions.json");
+  let known_path_extensions_json = dirs::config_dir().unwrap().join("tmm_stage/known_path_extensions.json");
   let path_extension_contents = fs::read_to_string(known_path_extensions_json).unwrap();
   let known_path_extensions: Vec<(u32, PathBuf)> = serde_json::from_str(path_extension_contents.as_str()).unwrap();
 
-  let mut supported_games_json = dirs::config_dir().unwrap().join("tmm_stage/supported_games.json");
+  let supported_games_json = dirs::config_dir().unwrap().join("tmm_stage/supported_games.json");
   let supported_games_contents = fs::read_to_string(supported_games_json).unwrap();
   let supported_games: Vec<u32> = serde_json::from_str(supported_games_contents.as_str()).unwrap();
 

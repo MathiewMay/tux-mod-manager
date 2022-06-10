@@ -23,10 +23,3 @@ pub struct Executable {
     pub startin_path: PathBuf,
     pub output_mod: String,
 }
-
-impl Game {
-    pub fn from_json(game_as_string: &str) -> Game {
-        let game: Game = serde_json::from_str(game_as_string).unwrap();
-        game
-    }
-}

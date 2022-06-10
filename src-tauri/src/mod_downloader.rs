@@ -8,15 +8,6 @@ use tauri::{ Window };
 
 use crate::mod_manager::game::Game;
 
-enum UrlParsed<E> {
-    Ok(),
-    Err(E)
-}
-
-pub struct Download {
-
-}
-
 //if you are coming from the Vue side of this method call and are wondering at
 //what point the 'window' variable joins the mix, I don't know, but I had to dig
 //through a lot to find it, but it would probably have been easier if I knew where
@@ -39,7 +30,7 @@ pub async fn download(url: String, game: Game, window: Window) {
         match utils::parse_url(url.as_str()) {
             Ok(url) => { parsed_url = url },
             Err(e) => {
-                eprintln!("Something went wrong while trying to parse the url: '{}'", url);
+                eprintln!("Something went wrong while trying to parse the url: '{}' Error message: {}", url, e);
                 return;
             }
         }

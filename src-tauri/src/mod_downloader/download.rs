@@ -20,19 +20,6 @@ struct Progress {
     finished: bool
 }
 
-impl Progress {
-    fn inc(&mut self, by: u64) {
-        match self.current {
-            Some(value) => {
-                self.current = Some(value + by);
-            },
-            None => {
-                self.current = Some(by);
-            }
-        }
-    }
-}
-
 pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
     let user_agent = format!("TMM/{}", &version);
     let timeout = 30u64;
@@ -90,7 +77,12 @@ pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume
     let file_handle = &save_path.join(&filename);
     let exists = file_handle.exists();
     if exists {
-        window.emit("already-downloaded", &filename);
+        match window.emit("already-downloaded", &filename) {
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Something went wrong while trying to emit 'already-downloaded' to frontend: {}", e);
+            }
+        }
         return Ok(());
     }
 
@@ -265,7 +257,12 @@ impl DefaultEventsHandler {
             current: None,
             finished: false,
         };
-        window.emit("download-started", &progress);
+        match window.emit("download-started", &progress) {
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Something went wrong while trying to emit 'download-started' to frontend: {}", e);
+            }
+        }
         Ok(DefaultEventsHandler {
             window,
             progress: Some(progress),
@@ -280,7 +277,7 @@ impl DefaultEventsHandler {
     }
 
     pub fn inc(&mut self, byte_count: u64) {
-        let mut self_progress = &self.progress;
+        let self_progress = &self.progress;
         match self_progress {
             Some(p) => {
                 match p.current {
@@ -319,7 +316,12 @@ impl EventsHandler for DefaultEventsHandler {
         self.file.write_all(content)?;
 
         self.inc(byte_count);
-        self.window.emit("download-progress", &self.progress);
+        match self.window.emit("download-progress", &self.progress) {
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Something went wrong while trying to emit 'download-progress' to frontend: {}", e);
+            }
+        }
 
         Ok(())
     }
@@ -341,7 +343,12 @@ impl EventsHandler for DefaultEventsHandler {
         }
         
         self.inc(byte_count);
-        self.window.emit("download-progress", &self.progress);
+        match self.window.emit("download-progress", &self.progress) {
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Something went wrong while trying to emit 'download-progress' to frontend: {}", e);
+            }
+        }
 
         Ok(())
     }
@@ -353,7 +360,7 @@ impl EventsHandler for DefaultEventsHandler {
     fn on_finish(&mut self) {
         let st_file = format!("{}/{}.st", self.save_path.as_str(), self.filename);
         
-        let mut self_progress = &self.progress;
+        let self_progress = &self.progress;
         match self_progress {
             Some(p) => {
                 self.progress = Some(Progress { filename: self.filename.as_str().to_owned(), filesize: p.filesize, current: p.current, finished: true})
@@ -362,9 +369,19 @@ impl EventsHandler for DefaultEventsHandler {
                 self.progress = Some(Progress { filename: self.filename.as_str().to_owned(), filesize: self.content_len, current: self.content_len, finished: true });
             }
         }
-        self.window.emit("download-finished", &self.progress).unwrap();
+        match self.window.emit("download-finished", &self.progress) {
+            Ok(()) => {}
+            Err(e) => {
+                eprintln!("Something went wrong while trying to emit 'download-finished' to frontend: {}", e);
+            }
+        }
 
-        fs::remove_file(st_file);
+        match fs::remove_file(&st_file) {
+            Ok(()) => {},
+            Err(e) => {
+                eprintln!("Failed to remove '{}': {}", &st_file, e);
+            }
+        }
     }
 
     fn on_max_retries(&mut self) {
