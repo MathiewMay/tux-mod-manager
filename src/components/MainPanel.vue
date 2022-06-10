@@ -1,6 +1,5 @@
 <script>
 import { ref } from '@vue/reactivity'
-import { invoke } from '@tauri-apps/api/tauri'
 
 import ModManager from './ModManager.vue'
 import ModInstaller from './ModInstaller.vue'

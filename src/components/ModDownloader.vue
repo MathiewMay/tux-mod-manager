@@ -66,7 +66,7 @@ export default {
       });
     });
     event.listen("already-downloaded", event => {
-      dialog.message("You have already downloaded this file: '" + event.payload + "'");
+      dialog.message("You have already downloaded this file:\n'" + event.payload + "'");
     })
     return { downloads }
   },

@@ -12,7 +12,7 @@ export default {
     function resetSelectedGame(){
       selected_game.value = {}
     }
-    console.log(window);
+    // console.log(window);
     return {selected_game, resetSelectedGame}
   },
   methods: {

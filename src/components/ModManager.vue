@@ -31,7 +31,7 @@ export default {
   },
   methods: {
     async refreshModList(){
-      console.log("Mod List refreshed");
+      // console.log("Mod List refreshed");
       this.resetMods()
       const modsEntrys = await invoke('get_mods', {game: this.selected_game})
       modsEntrys.forEach(modEntry => {
