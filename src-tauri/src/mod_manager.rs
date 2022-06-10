@@ -54,11 +54,11 @@ pub fn scan_games() -> Vec<String> {
     let path_to_game_config = Path::new(&pathbuf_to_game_config);
     let already_found = path_to_game_config.exists();
     if already_found {
-      println!("There already exists a config for game: '{}'", app.name.as_ref().unwrap());
+      // println!("There already exists a config for game: '{}'", app.name.as_ref().unwrap());
       let json = fs::read_to_string(path_to_game_config).unwrap();
       steam_games.push(json);
     } else if !supported_games.contains(&app.appid) {
-      println!("Game: {} not currently supported.", app.name.as_ref().unwrap());
+      // println!("Game: {} not currently supported.", app.name.as_ref().unwrap());
     } else {
       let profile_path = dirs::config_dir().unwrap().join("tmm_stage/profiles/").join(format!("{}", app.appid));
       let mut path_extension: PathBuf = PathBuf::new();

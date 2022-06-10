@@ -297,14 +297,16 @@ impl DefaultEventsHandler {
 }
 
 impl EventsHandler for DefaultEventsHandler {
-    fn on_headers(&mut self, headers: HeaderMap) {
-        let content_type = if let Some(val) = headers.get(header::CONTENT_TYPE) {
-            val.to_str().unwrap_or("")
-        } else {
-            ""
-        };
-        println!("Type: {}", content_type);
-        println!("Saving to: {}", &self.filename);
+    fn on_headers(&mut self, _headers: HeaderMap) {
+        // TODO: This should probably be used to determine whether a download is of supported file type
+        // let content_type = if let Some(val) = headers.get(header::CONTENT_TYPE) {
+        //     val.to_str().unwrap_or("")
+        // } else {
+        //     ""
+        // };
+
+        // println!("Type: {}", content_type);
+        // println!("Saving to: {}", &self.filename);
     }
 
     fn on_server_supports_resume(&mut self) {
@@ -385,7 +387,7 @@ impl EventsHandler for DefaultEventsHandler {
     }
 
     fn on_max_retries(&mut self) {
-        println!("Max retries exceeded, quitting!");
+        // println!("Max retries exceeded, quitting!");
         match self.file.flush() {
             _ => {}
         }
@@ -399,7 +401,13 @@ impl EventsHandler for DefaultEventsHandler {
 
     fn on_failure_status(&self, status_code: i32) {
         if status_code == 416 {
-            println!("The file is already fully retrieved, nothing to do.");
+            // println!("The file is already fully retrieved, nothing to do.");
+            match self.window.emit("already-downloaded", &self.filename) {
+                Ok(()) => {}
+                Err(e) => {
+                    eprintln!("Something went wrong while trying to emit 'already-downloaded' to frontend: {}", e);
+                }
+            }
         }
     }
 }
