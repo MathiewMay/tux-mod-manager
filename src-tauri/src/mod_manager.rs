@@ -38,11 +38,11 @@ pub fn scan_games() -> Vec<String> {
   let mut steam_games: Vec<String> = Vec::new();
   let steam_apps = SteamDir::locate().unwrap().apps().clone();
 
-  let known_path_extensions_json = dirs::config_dir().unwrap().join("tmm_stage/known_path_extensions.json");
+  let known_path_extensions_json = dirs::config_dir().unwrap().join("tmm/known_path_extensions.json");
   let path_extension_contents = fs::read_to_string(known_path_extensions_json).unwrap();
   let known_path_extensions: Vec<(u32, PathBuf)> = serde_json::from_str(path_extension_contents.as_str()).unwrap();
 
-  let supported_games_json = dirs::config_dir().unwrap().join("tmm_stage/supported_games.json");
+  let supported_games_json = dirs::config_dir().unwrap().join("tmm/supported_games.json");
   let supported_games_contents = fs::read_to_string(supported_games_json).unwrap();
   let supported_games: Vec<u32> = serde_json::from_str(supported_games_contents.as_str()).unwrap();
 
@@ -50,9 +50,10 @@ pub fn scan_games() -> Vec<String> {
   for key in steam_apps.keys() {
     let app = steam_apps[key].as_ref().unwrap();
 
-    let pathbuf_to_game_config = dirs::config_dir().unwrap().join("tmm_stage/").join(format!("{}.json", app.appid));
+    let pathbuf_to_game_config = dirs::config_dir().unwrap().join("tmm/").join(format!("{}.json", app.appid));
     let path_to_game_config = Path::new(&pathbuf_to_game_config);
     let already_found = path_to_game_config.exists();
+
     if already_found {
       // println!("There already exists a config for game: '{}'", app.name.as_ref().unwrap());
       let json = fs::read_to_string(path_to_game_config).unwrap();
@@ -60,7 +61,10 @@ pub fn scan_games() -> Vec<String> {
     } else if !supported_games.contains(&app.appid) {
       // println!("Game: {} not currently supported.", app.name.as_ref().unwrap());
     } else {
-      let profile_path = dirs::config_dir().unwrap().join("tmm_stage/profiles/").join(format!("{}", app.appid));
+      let profile_path = dirs::config_dir().unwrap().join("tmm/profiles/").join(format!("{}", app.appid));
+      let components_count = app.path.to_path_buf().components().count();
+      let work_path = app.path.to_path_buf().components().take(components_count-4).collect::<PathBuf>().join([".tmm_work/", app.appid.to_string().as_str()].join(""));
+      println!("Game work_directory: {}", &work_path.to_str().unwrap());
       let mut path_extension: PathBuf = PathBuf::new();
       for pair in &known_path_extensions {
         let (id, extension) = pair;
@@ -75,11 +79,26 @@ pub fn scan_games() -> Vec<String> {
         appid: app.appid,
         install_path: app.path.to_path_buf(),
         profile_path,
+        work_path,
         path_extension,
         executables
       };
 
       let json = serde_json::to_string(&game).unwrap();
+      let mut app_config_path = dirs::config_dir().unwrap().join("tmm").join(format!("{}", app.appid));
+      app_config_path.set_extension("json");
+      match fs::create_dir_all(dirs::config_dir().unwrap().join("tmm")) {
+        Ok(()) => {},
+        Err(e) => {
+          eprintln!("Couldn't create config dir while working on game '{}'/{}\nError: {}", app.name.as_ref().unwrap(), app.appid, e);
+        }
+      }
+      match fs::write(&app_config_path, &json) {
+        Ok(()) => {},
+        Err(e) => {
+          eprintln!("Couldn't write to config file for game '{}'/{}\nError: {}", app.name.as_ref().unwrap(), app.appid, e);
+        }
+      }
       make_tmm_game_directories(game);
       steam_games.push(json);
     }
@@ -115,7 +134,7 @@ pub fn remove_mod(mod_struct: Mod, game: Game) {
 
 pub(crate) fn make_tmm_game_directories(game: Game) {
   fs::create_dir_all(&game.profile_path).unwrap();
-  fs::create_dir_all(&game.profile_path.join("work/")).unwrap();
+  fs::create_dir_all(&game.work_path).unwrap();
   fs::create_dir_all(&game.profile_path.join("downloads/")).unwrap();
   fs::create_dir_all(&game.profile_path.join("mods/")).unwrap();
 }
