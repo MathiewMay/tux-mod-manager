@@ -8,7 +8,7 @@ export default {
     async removeMod() {
       dialog.ask("You are about to delete \n\""+this.mod.name+"\" \nare you sure you want to proceed?").then((proceed) => {
         if(proceed){
-          invoke('remove_mod', { modStruct: this.mod })
+          invoke('remove_mod', { modStruct: this.mod, game: this.selected_game })
           this.$parent.refreshModList()
         }
       })
@@ -18,7 +18,6 @@ export default {
 </script>
 
 <template>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <div class="mod">
   <input v-if="installing != true" ref="mod_enabled" class="mod-enabled" type="checkbox">
   <i v-else class="fa fa-duotone fa-arrows-rotate fa-spin"></i>
@@ -30,22 +29,25 @@ export default {
 </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .fa {
   color: white;
-  margin-top: 5px;
-  margin-left: 5px;
   font-size: x-large;
+  margin-right: 10px;
+  width: 30px; line-height: 30px;
+  text-align: center;
 }
 .mod {
   display: flex;
   flex-direction:row;
   justify-content: left;
+  padding: 5px;
 }
 .mod-enabled {
-  float: left;
   width: 30px;
   height: 30px;
+  margin: 0;
+  margin-right: 10px;
 }
 .mod-name {
   color: white;
@@ -54,17 +56,11 @@ export default {
   white-space: nowrap;
   overflow: hidden;
   margin: 0px;
-  margin-top: 8px;
-  margin-left: 10px;
-}
-.mod-options {
-  float: right;
+  line-height: 30px;
+  height: 30px;
 }
 .mod-options button {
-  margin-top: 3px;
-}
-.end-button {
-  width: 89px;
+  margin: 0;
   height: 30px;
 }
 </style>

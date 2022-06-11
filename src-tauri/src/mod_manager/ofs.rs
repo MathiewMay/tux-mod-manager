@@ -1,4 +1,5 @@
-use crate::mod_manager::{Game, Mod};
+use crate::mod_manager::{Mod};
+use crate::mod_manager::game::Game;
 use std::process::Command;
 use std::path::PathBuf;
 
@@ -10,11 +11,11 @@ pub(crate) struct OFSLogic {
 impl OFSLogic {
   pub fn exec(&self) {
     let mut mod_paths: Vec<PathBuf> = Vec::new();
-    let upper_path: PathBuf = PathBuf::new().join(&self.game.path);
-    let work_path: PathBuf = dirs::home_dir().unwrap().join(&self.game.work_path);
+    let upper_path: PathBuf = PathBuf::new().join(&self.game.install_path).join(&self.game.path_extension);
+    let work_path: PathBuf = PathBuf::new().join(&self.game.work_path);
     
     for elem in &self.mods {
-      mod_paths.push(PathBuf::new().join(&elem.path));
+      mod_paths.push(PathBuf::new().join(&self.game.profile_path.join("mods").join(&elem.name)));
     }
 
     init_overlay_fs(mod_paths, &upper_path, &upper_path, &work_path);
