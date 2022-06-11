@@ -11,7 +11,7 @@ pub(crate) struct OFSLogic {
 impl OFSLogic {
   pub fn exec(&self) {
     let mut mod_paths: Vec<PathBuf> = Vec::new();
-    let upper_path: PathBuf = PathBuf::new().join(&self.game.install_path);
+    let upper_path: PathBuf = PathBuf::new().join(&self.game.install_path).join(&self.game.path_extension);
     let work_path: PathBuf = PathBuf::new().join(&self.game.work_path);
     
     for elem in &self.mods {

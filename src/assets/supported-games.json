@@ -11,7 +11,7 @@
         "output_mod": "overwrite"
       }
     ],
-    "path_extension": "/Data/"
+    "path_extension": "Data/"
   },
   {
     "app_id": 489830,
@@ -32,7 +32,7 @@
         "output_mod": "overwrite"
       }
     ],
-    "path_extension": "/Data/"
+    "path_extension": "Data/"
   },
   {
     "app_id": 1091500,
@@ -60,7 +60,7 @@
         "output_mod": "overwrite"
       }
     ],
-    "path_extension": "/Data/"
+    "path_extension": "Data/"
   },
   {
     "app_id": 22380,
@@ -74,7 +74,7 @@
         "output_mod": "overwrite"
       }
     ],
-    "path_extension": "/Data/"
+    "path_extension": "Data/"
   },
   {
     "app_id": 337160,
@@ -88,6 +88,6 @@
         "output_mod": "overwrite"
       }
     ],
-    "path_extension": "/Data/"
+    "path_extension": "Data/"
   }
 ]
