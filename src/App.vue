@@ -1,7 +1,7 @@
 <script>
 import { ref } from '@vue/reactivity'
 import { event } from '@tauri-apps/api'
-// import { WebviewWindow } from '@tauri-apps/api/window'
+import { WebviewWindow } from '@tauri-apps/api/window'
 
 import SideBar from './components/SideBar.vue'
 import MainPanel from './components/MainPanel.vue'

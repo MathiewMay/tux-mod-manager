@@ -16,7 +16,7 @@ fn main() {
       mod_manager::remove_mod,
       mod_downloader::download,
     ])
-    .run(tauri::generate_context!())
+    .run(tauri::generate_context!("tauri.conf.json"))
     .expect("error while running tauri application");
 }
 

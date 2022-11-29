@@ -6,7 +6,7 @@ use compress_tools::*;
 
 
 extern crate steamlocate;
-use steamlocate::SteamDir;
+use steamlocate::{SteamDir, SteamApp};
 
 mod ofs;
 pub mod game;
@@ -29,7 +29,10 @@ pub struct Mod {
 
 #[tauri::command]
 pub fn deploy(mods: Vec<Mod>, game: Game) {
-  let ofs = ofs::OFSLogic{ game, mods };
+  let ofs = ofs::OFSLogic{ 
+    game, 
+    mods, 
+  };
   ofs.exec();
 }
 
@@ -43,8 +46,18 @@ pub struct SupportedGame {
 
 #[tauri::command]
 pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
+
+  
+  let game_list = match scan_for_steam_games(supported_games) {
+    Some(list) => list,
+    None => scan_for_other_games(),  //todo
+  };
+  game_list.into()
+}
+
+fn scan_for_steam_games(supported_games: Vec<SupportedGame>) -> Option<Vec<String>> {
   let mut steam_games: Vec<String> = Vec::new();
-  let steam_apps = SteamDir::locate().unwrap().apps().clone();
+  let steam_apps: HashMap<u32, Option<SteamApp>> = find_steam_apps()?;
 
   // let known_path_extensions_json = dirs::config_dir().unwrap().join("tmm/known_path_extensions.json");
   // let path_extension_contents = fs::read_to_string(known_path_extensions_json).unwrap();
@@ -55,12 +68,11 @@ pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
   // let supported_games: Vec<u32> = serde_json::from_str(supported_games_contents.as_str()).unwrap();
 
   // println!("Known Path Extensions: {:?}", known_path_extensions);
-  for key in steam_apps.keys() {
-    let app = steam_apps[key].as_ref().unwrap();
+  for key in steam_apps.keys() {  //for every steam game found on the system...
+    let app = steam_apps[key].as_ref().unwrap(); //Get a reference to a SteamApp struct
 
     let pathbuf_to_game_config = dirs::config_dir().unwrap().join("tmm/").join(format!("{}.json", app.appid));
     let path_to_game_config = Path::new(&pathbuf_to_game_config);
-    let already_found = path_to_game_config.exists();
 
     let mut supported = HashMap::new();
     for game in &supported_games {
@@ -70,7 +82,7 @@ pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
       );
     }
 
-    if already_found {
+    if path_to_game_config.exists() {
       // println!("There already exists a config for game: '{}'", app.name.as_ref().unwrap());
       let json = fs::read_to_string(path_to_game_config).unwrap();
       steam_games.push(json);
@@ -121,7 +133,19 @@ pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
     // make_tmm_game_directories(game);
     // steam_games.push(json);
   }
-  steam_games.into()
+  Some(steam_games)
+}
+
+fn find_steam_apps() -> Option<HashMap<u32, Option<SteamApp>>> {
+  let mut dir = SteamDir::locate()?;
+
+  let apps = dir.apps().clone();
+  Some(apps)
+}
+
+fn scan_for_other_games() -> Vec<String> {
+  //TODO
+  Vec::new()
 }
 
 #[tauri::command]
