@@ -13,15 +13,6 @@ pub mod game;
 
 use game::{Game, Executable};
 
-// #[derive(Serialize, Deserialize)]
-// pub struct Game {
-//   appid: u32,
-//   name: String,
-//   path: PathBuf,
-//   stage_path: PathBuf,
-//   work_path: PathBuf,
-// }
-
 #[derive(Serialize, Deserialize)]
 pub struct Mod {
   name: String,

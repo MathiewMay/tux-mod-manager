@@ -35,7 +35,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "tux_mod_manager",
+      "identifier": "tux-mod-manager",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
