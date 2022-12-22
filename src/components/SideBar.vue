@@ -20,7 +20,7 @@ export default {
         entrys.forEach(element => {
           let game = JSON.parse(element)
           // if(this.supported_games[game.appid]){
-            this.games[game.appid] = game
+          this.games[game.appid] = game
           // }
         })
       })
