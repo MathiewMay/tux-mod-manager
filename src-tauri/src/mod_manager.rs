@@ -39,7 +39,10 @@ pub struct SupportedGame {
 pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
   let game_list = match scan_for_steam_games(&supported_games) {
     Some(list) => list,
-    None => scan_for_other_games(&supported_games),  //todo
+    None => match scan_for_other_games(&supported_games) {
+      Some(list) => list,
+      None => { eprintln!("Problem scanning Steam and other store libraries"); Vec::new() }
+    },  //todo
   };
   game_list
 }
@@ -91,7 +94,7 @@ fn scan_for_steam_games(supported_games: &Vec<SupportedGame>) -> Option<Vec<Stri
           eprintln!("Couldn't create config dirs while working on game '{}'/{}\nError: {}", app.name.as_ref().unwrap(), app.appid, e);
         },
       }
-      match fs::write(&pathbuf_to_game_config, &json) {   // write the contents of the game struct to the game's json file inside the config folder
+      match fs::write(&pathbuf_to_game_config, &json) {   //  Write the contents of the game struct to the game's json file inside the config folder
         Ok(()) => {},
         Err(e) => {
           eprintln!("Couldn't write to config file for game '{}'/{}\nError: {}", app.name.as_ref().unwrap(), app.appid, e);
@@ -111,50 +114,99 @@ fn find_steam_apps() -> Option<HashMap<u32, Option<SteamApp>>> {
   Some(apps)
 }
 
-fn scan_for_other_games(games: &Vec<SupportedGame>) -> Vec<String> {  //scan for games another way, if no steam games were found or couldn't get steam data
+fn scan_for_other_games(games: &Vec<SupportedGame>) -> Option<Vec<String>> {  //scan for games another way, if no steam games were found or couldn't get steam data
   //TODO
-  //Scan for games, getting their location and some info
+  //  Scan for games, getting their location and some info
   //put that info into a Game struct, game::Game
   //write that struct as a json string to a file in the tmm config folder
   //create the folders for the game make_tmm_game_directories
   //return a Vec with each game found converted from the Game struct to a string
 
-  let mut executable_list: Vec<PathBuf> = Vec::new(); //create a buffer for the list
-  for game in games {  //for each game in the supported games list
-    let mut exec_paths: Vec<String> = Vec::new();  //create a buffer for all paths we find
-    for exec in &game.known_binaries {  //for each executable name we'll search for
-      let name = &exec.binary_path.file_name().unwrap().to_owned();
-      let path = match find_game(&name.to_str().unwrap()) {
+  let mut game_list: Vec<String> = Vec::new(); //  create a buffer for the list
+  for game in games {  //  for each game in the supported games list
+    let game_config_pathbuf = dirs::config_dir()?.join("tmm/").join(format!("{}.json", game.app_id));
+    let game_config_path = Path::new(&game_config_pathbuf);
+
+    if game_config_path.exists() {
+      let json = fs::read_to_string(game_config_path).unwrap();
+      game_list.push(json);
+      continue;
+    }
+
+    let mut game_paths: Vec<PathBuf> = Vec::new();  //  create a buffer for all paths we find
+    for exec in &game.known_binaries {  //  for each executable name we'll search for
+      let name = &exec.binary_path.file_name().unwrap().to_owned(); //  we search for the game using only the file name, ie Cyberpunk2077.exe,
+      let exec_path = match find_game(&name.to_str().unwrap()) {    //because the supported games json has some binary files inside a couple different folders from the game's root folder
         Some(path) => path,
         None => continue,
       };
-
-      let exec_depth = exec.binary_path.components();
-      exec_paths.push(path);
+      
+      for line in exec_path.lines() {  //  if the find command finds multiple files they'll be on seperate lines, check each one is the 'real' one
+        if line.contains(&exec.binary_path.to_str().unwrap()) {  //  Check for the folder layout as listed in binary path, should prevent any rare circumstances where there's an incorrect .exe stored somewhere
+          let exec_depth = &exec.binary_path.components().count();  //  Check how many folders the exec is in from the game's root folder
+          let exec_pathbuf = PathBuf::from(line.trim());
+          let exec_path_count = exec_pathbuf.components().count();  //  Convert the path string into a pathbuf to quickly count the folders
+          let game_root_path: PathBuf = exec_pathbuf.components().take(exec_path_count - exec_depth).collect();  //  This should trim down the end of the full path to direct to the game's root folder
+          game_paths.push(game_root_path);
+        }
+      }
     }
 
-    let public_name = &game.public_name;
-    let app_id = &game.app_id;
-    
-    //let install_path = exec_path //todo use the exec_depth above to 'cut off' the binary name from the pathbuf to return the game's root folder instead
+    let public_name = game.public_name.clone();
+    let appid = game.app_id;
+    let install_path = game_paths[0].clone(); //  We'll just assume the first path found is the correct one
+    let profile_path = dirs::config_dir()?.join("tmm/profiles/").join(format!("{}", appid)); //  Pathbuf to the tmm config directory from before adding a profiles folder for each game
+    let work_path = dirs::config_dir()?.join("tmm/non_steam_mods").join(format!("{}", appid));
+    let path_extension = game.path_extension.clone();
+    let executables = game.known_binaries.clone();
 
+    let game_data = Game { //  Collect all the game data together for json serde
+      public_name,
+      appid,
+      install_path,
+      profile_path,
+      work_path,
+      path_extension,
+      executables,
+    };
+
+    let json_data = serde_json::to_string(&game_data).unwrap();
+
+    match make_tmm_game_directories(game_data) {
+      Ok(()) => {},
+      Err(e) => {
+        eprintln!("Couldn't create config dirs while working on game '{}'/{}\nError: {}", game.public_name, appid, e);
+      },
+    }
+
+    match fs::write(&game_config_path, &json_data) {
+      Ok(()) => {},
+      Err(e) => {
+        eprintln!("Couldn't create config file for game '{}'/{}\nError: {}", game.public_name, appid, e)
+      }
+    }
+
+    game_list.push(json_data)
   }
 
-  Vec::new()
+  Some(game_list)
 }
 
-fn find_game(game: &str) -> Option<String> {  //scan for one specific game, is a helper function for scan_for_other_games and will later be used to have the user scan for any games the steam search didn't find
-  let output = Command::new("/usr/bin/find")
+fn find_game(game: &str) -> Option<String> {  //  Scan for one specific game, is a helper function for scan_for_other_games and will later be used to have the user scan for any games the steam search didn't find
+  let output = match Command::new("find")  //  Run the find command, currently searches starting from root which is probably slow on some systems, will later limit the search to some more common folders
     .arg("/")
     .arg("-type")
     .arg("f")
     .arg("-name")
     .arg(&game)
-    .output().expect("failed command");
+    .output() {
+      Ok(output) => output,
+      Err(e) => { eprintln!("Failed to run find command {}", e); return None },
+    };  //  Returns an Output struct type, the stdout is a Vec<u8> that needs to be converted into a string
 
     let s = match str::from_utf8(&output.stdout) {
       Ok(s) => s,
-      Err(_) => return None,
+      Err(e) =>{ eprintln!("Failed to convert find output {}", e); return None },
     };
 
     Some(s.to_owned())
@@ -221,5 +273,32 @@ mod tests {
     };
     println!("Got path: {}", path);
     Ok(())
+  }
+
+  #[test]
+  fn test_other_game_search() -> Result<()> {
+    let test_game_list = vec![ SupportedGame {
+      app_id: 1091500,
+      public_name: String::from("Cyberpunk 2077"),
+      known_binaries:  vec![ Executable
+        {
+          name: String::from("Cyberpunk2077"),
+          use_compatibility: true,
+          binary_path: PathBuf::from("/bin/x64/Cyberpunk2077.exe"),
+          startin_path: PathBuf::from(""),
+          output_mod: String::from("overwrite")
+        }],
+      path_extension: PathBuf::from(""),
+    }];
+
+    let results = match scan_for_other_games(&test_game_list) {
+      Some(result) => result,
+      None => panic!("Search failed")
+    };
+
+    println!("Got result: {:?}", results);
+
+    Ok(())
+
   }
 }
