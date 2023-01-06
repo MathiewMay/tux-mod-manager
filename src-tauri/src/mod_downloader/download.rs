@@ -1,26 +1,33 @@
-use std::time::Duration;
 use std::fs;
-use std::path::{Path, PathBuf};
 use std::io::{BufRead, BufReader, BufWriter, Seek, SeekFrom, Write};
+use std::path::{Path, PathBuf};
+use std::time::Duration;
 
+use failure::{format_err, Fallible};
+use reqwest::blocking::Client;
+use reqwest::header::{self, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 use url::Url;
-use reqwest::header::{self, HeaderMap, HeaderValue};
-use reqwest::blocking::Client;
-use failure::{format_err, Fallible};
 
-use crate::mod_downloader::utils::{decode_percent_coded_string, get_file_handle};
 use crate::mod_downloader::core::{Config, EventsHandler, HttpDownload};
+use crate::mod_downloader::utils::{decode_percent_coded_string, get_file_handle};
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Progress {
     filename: String,
     filesize: Option<u64>,
     current: Option<u64>,
-    finished: bool
+    finished: bool,
 }
 
-pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume_download: bool, concurrent_download: bool, version: &str) -> Fallible<()> {
+pub fn http_download(
+    url: Url,
+    save_path: PathBuf,
+    window: tauri::Window,
+    resume_download: bool,
+    concurrent_download: bool,
+    version: &str,
+) -> Fallible<()> {
     let user_agent = format!("TMM/{}", &version);
     let timeout = 30u64;
     let num_workers = 8usize;
@@ -28,12 +35,8 @@ pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume
     let filename = gen_filename(&url, Some(&headers));
 
     let content_len = match headers.get("Content-Length") {
-        Some(val) => {
-            Some(val.to_str()?.parse::<u64>().unwrap_or(0))
-        },
-        _ => {
-            None
-        }
+        Some(val) => Some(val.to_str()?.parse::<u64>().unwrap_or(0)),
+        _ => None,
     };
 
     let headers = prep_headers(&filename, resume_download, &user_agent)?;
@@ -48,8 +51,8 @@ pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume
             } else {
                 None
             }
-        },
-        None => { None }
+        }
+        None => None,
     };
 
     let bytes_on_disk = if resume_download {
@@ -87,7 +90,14 @@ pub fn http_download(url: Url, save_path: PathBuf, window: tauri::Window, resume
     }
 
     let mut client = HttpDownload::new(url.clone(), conf.clone());
-    let events_handler = DefaultEventsHandler::new(&filename, &save_path.to_str().unwrap(), window, content_len, resume_download, concurrent_download)?;
+    let events_handler = DefaultEventsHandler::new(
+        &filename,
+        &save_path.to_str().unwrap(),
+        window,
+        content_len,
+        resume_download,
+        concurrent_download,
+    )?;
     client.events_hook(events_handler).download()?;
     Ok(())
 }
@@ -100,7 +110,7 @@ fn request_headers(url: &Url, timeout: u64, ua: &str) -> Fallible<HeaderMap> {
     // println!("{}, {}", &url, &copy);
     // let result = spawn_blocking(move || {reqwest::blocking::get(copy.as_ref()).unwrap().copy_to(&mut file).unwrap()});
     let response = Client::new()
-        .get(url.as_ref())
+        .get(url.as_str())
         .timeout(Duration::from_secs(timeout))
         .header(header::USER_AGENT, HeaderValue::from_str(ua)?)
         .header(header::ACCEPT, HeaderValue::from_str("*/*")?)
@@ -166,7 +176,7 @@ fn prep_headers(fname: &str, resume: bool, user_agent: &str) -> Fallible<HeaderM
     Ok(headers)
 }
 
-fn calc_bytes_on_disk(fname: &str) -> Fallible<Option<u64>>{
+fn calc_bytes_on_disk(fname: &str) -> Fallible<Option<u64>> {
     //.st is a state file, use it if possible
     let st_fname = format!("{}.st", fname);
     if Path::new(&st_fname).exists() {
@@ -189,7 +199,11 @@ fn calc_bytes_on_disk(fname: &str) -> Fallible<Option<u64>>{
     }
 }
 
-fn get_resume_chunk_offsets(filename: &str, content_len: u64, chunk_size: u64) -> Fallible<Vec<(u64, u64)>> {
+fn get_resume_chunk_offsets(
+    filename: &str,
+    content_len: u64,
+    chunk_size: u64,
+) -> Fallible<Vec<(u64, u64)>> {
     let st_fname = format!("{}.st", filename);
     let input = fs::File::open(st_fname)?;
     let buf = BufReader::new(input);
@@ -208,7 +222,7 @@ fn get_resume_chunk_offsets(filename: &str, content_len: u64, chunk_size: u64) -
         if i == offset {
             i = offset + bc;
         } else {
-            chunks.push((i, offset -1));
+            chunks.push((i, offset - 1));
             i = offset + bc;
         }
     }
@@ -232,7 +246,7 @@ pub struct DefaultEventsHandler {
     save_path: String,
     file: BufWriter<fs::File>,
     st_file: Option<BufWriter<fs::File>>,
-    server_supports_resume: bool
+    server_supports_resume: bool,
 }
 
 impl DefaultEventsHandler {
@@ -242,11 +256,14 @@ impl DefaultEventsHandler {
         window: tauri::Window,
         content_len: Option<u64>,
         resume: bool,
-        concurrent: bool
+        concurrent: bool,
     ) -> Fallible<DefaultEventsHandler> {
         let st_file = if concurrent {
-            Some(BufWriter::new(get_file_handle(
-                &format!("{}.st", filename), save_path, &resume, &true
+            Some(BufWriter::new(get_file_handle(  //wrap the file that will be written to from the data downloaded in a buffer, reducing system calls
+                &format!("{}.st", filename),
+                save_path,
+                &resume,
+                &true,
             )?))
         } else {
             None
@@ -260,7 +277,10 @@ impl DefaultEventsHandler {
         match window.emit("download-started", &progress) {
             Ok(()) => {}
             Err(e) => {
-                eprintln!("Something went wrong while trying to emit 'download-started' to frontend: {}", e);
+                eprintln!(
+                    "Something went wrong while trying to emit 'download-started' to frontend: {}",
+                    e
+                );
             }
         }
         Ok(DefaultEventsHandler {
@@ -270,27 +290,45 @@ impl DefaultEventsHandler {
             content_len,
             filename: filename.to_owned(),
             save_path: save_path.to_owned(),
-            file: BufWriter::new(get_file_handle(&filename, save_path, &resume, &!concurrent)?),
+            file: BufWriter::new(get_file_handle(
+                &filename,
+                save_path,
+                &resume,
+                &!concurrent,
+            )?),
             st_file,
-            server_supports_resume: false
+            server_supports_resume: false,
         })
     }
 
     pub fn inc(&mut self, byte_count: u64) {
         let self_progress = &self.progress;
         match self_progress {
-            Some(p) => {
-                match p.current {
-                    Some(val) => {
-                        self.progress = Some(Progress { filename: p.filename.as_str().to_owned(), filesize: p.filesize, current: Some(val + byte_count), finished: false })
-                    }
-                    None => {
-                        self.progress = Some(Progress { filename: p.filename.as_str().to_owned(), filesize: p.filesize, current: Some(byte_count), finished: false })
-                    }
+            Some(p) => match p.current {
+                Some(val) => {
+                    self.progress = Some(Progress {
+                        filename: p.filename.as_str().to_owned(),
+                        filesize: p.filesize,
+                        current: Some(val + byte_count),
+                        finished: false,
+                    })
+                }
+                None => {
+                    self.progress = Some(Progress {
+                        filename: p.filename.as_str().to_owned(),
+                        filesize: p.filesize,
+                        current: Some(byte_count),
+                        finished: false,
+                    })
                 }
             },
             None => {
-                self.progress = Some(Progress { filename: self.filename.as_str().to_owned(), filesize: self.content_len, current: Some(byte_count), finished: false });
+                self.progress = Some(Progress {
+                    filename: self.filename.as_str().to_owned(),
+                    filesize: self.content_len,
+                    current: Some(byte_count),
+                    finished: false,
+                });
             }
         }
     }
@@ -321,7 +359,10 @@ impl EventsHandler for DefaultEventsHandler {
         match self.window.emit("download-progress", &self.progress) {
             Ok(()) => {}
             Err(e) => {
-                eprintln!("Something went wrong while trying to emit 'download-progress' to frontend: {}", e);
+                eprintln!(
+                    "Something went wrong while trying to emit 'download-progress' to frontend: {}",
+                    e
+                );
             }
         }
 
@@ -333,22 +374,25 @@ impl EventsHandler for DefaultEventsHandler {
         self.file.seek(SeekFrom::Start(offset))?;
         self.file.write_all(buf)?;
         self.file.flush()?;
-        
+
         if let Some(ref mut file) = self.st_file {
             writeln!(file, "{}:{}", byte_count, offset)?;
             match file.flush() {
                 Err(error) => {
                     eprintln!("Failed to flush file (concurrent download); {}", error);
-                },
+                }
                 Ok(_) => {}
             }
         }
-        
+
         self.inc(byte_count);
         match self.window.emit("download-progress", &self.progress) {
             Ok(()) => {}
             Err(e) => {
-                eprintln!("Something went wrong while trying to emit 'download-progress' to frontend: {}", e);
+                eprintln!(
+                    "Something went wrong while trying to emit 'download-progress' to frontend: {}",
+                    e
+                );
             }
         }
 
@@ -361,25 +405,38 @@ impl EventsHandler for DefaultEventsHandler {
 
     fn on_finish(&mut self) {
         let st_file = format!("{}/{}.st", self.save_path.as_str(), self.filename);
-        
+
         let self_progress = &self.progress;
         match self_progress {
             Some(p) => {
-                self.progress = Some(Progress { filename: self.filename.as_str().to_owned(), filesize: p.filesize, current: p.current, finished: true})
-            },
+                self.progress = Some(Progress {
+                    filename: self.filename.as_str().to_owned(),
+                    filesize: p.filesize,
+                    current: p.current,
+                    finished: true,
+                })
+            }
             None => {
-                self.progress = Some(Progress { filename: self.filename.as_str().to_owned(), filesize: self.content_len, current: self.content_len, finished: true });
+                self.progress = Some(Progress {
+                    filename: self.filename.as_str().to_owned(),
+                    filesize: self.content_len,
+                    current: self.content_len,
+                    finished: true,
+                });
             }
         }
         match self.window.emit("download-finished", &self.progress) {
             Ok(()) => {}
             Err(e) => {
-                eprintln!("Something went wrong while trying to emit 'download-finished' to frontend: {}", e);
+                eprintln!(
+                    "Something went wrong while trying to emit 'download-finished' to frontend: {}",
+                    e
+                );
             }
         }
 
         match fs::remove_file(&st_file) {
-            Ok(()) => {},
+            Ok(()) => {}
             Err(e) => {
                 eprintln!("Failed to remove '{}': {}", &st_file, e);
             }

@@ -1,15 +1,15 @@
 use std::cell::RefCell;
 use std::fmt;
-use std::time::Duration;
 use std::io::Read;
-use std::sync::mpsc;
 use std::path::PathBuf;
+use std::sync::mpsc;
+use std::time::Duration;
 
-use reqwest::header::{self, HeaderMap, HeaderValue};
 use reqwest::blocking::{Client, Request};
+use reqwest::header::{self, HeaderMap, HeaderValue};
 use url::Url;
 
-use failure::{Fallible};
+use failure::Fallible;
 
 use threadpool::ThreadPool;
 
@@ -67,7 +67,11 @@ pub struct HttpDownload {
 
 impl fmt::Debug for HttpDownload {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "HttpDownload:\nurl: {}\nretries: {}\nConfig:\n{:#?}", self.url, self.retries, self.conf)
+        write!(
+            f,
+            "HttpDownload:\nurl: {}\nretries: {}\nConfig:\n{:#?}",
+            self.url, self.retries, self.conf
+        )
     }
 }
 
@@ -120,7 +124,10 @@ impl HttpDownload {
             hook.borrow_mut().on_headers(headers.clone());
         }
 
-        if server_supports_bytes && self.conf.concurrent && headers.contains_key(header::CONTENT_LENGTH) {
+        if server_supports_bytes
+            && self.conf.concurrent
+            && headers.contains_key(header::CONTENT_LENGTH)
+        {
             self.concurrent_download(req, headers.get(header::CONTENT_LENGTH).unwrap())?;
         } else {
             self.singlethread_download(req)?;
@@ -181,7 +188,7 @@ impl HttpDownload {
             .clone()
             .unwrap_or_else(|| self.get_chunk_offsets(content_len, self.conf.chunk_size));
         let worker_pool = ThreadPool::new(self.conf.num_workers);
-        
+
         for offsets in chunk_offsets {
             let data_tx = data_tx.clone();
             let errors_tx = errors_tx.clone();
@@ -237,20 +244,19 @@ impl HttpDownload {
 
         sizes
     }
-
 }
 
 fn download_chunk(
     req: Request,
     offsets: (u64, u64),
     sender: mpsc::Sender<(u64, u64, Vec<u8>)>,
-    errors: mpsc::Sender<(u64, u64)>
+    errors: mpsc::Sender<(u64, u64)>,
 ) {
     fn inner(
         mut req: Request,
         offsets: (u64, u64),
         sender: mpsc::Sender<(u64, u64, Vec<u8>)>,
-        start_offset: &mut u64
+        start_offset: &mut u64,
     ) -> Fallible<()> {
         let byte_range = format!("bytes={}-{}", offsets.0, offsets.1);
         let headers = req.headers_mut();
@@ -284,6 +290,6 @@ fn download_chunk(
         Ok(_) => {}
         Err(_) => match errors.send((start_offset, end_offset)) {
             _ => {}
-        }
+        },
     }
 }

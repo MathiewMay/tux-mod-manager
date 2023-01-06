@@ -13,7 +13,7 @@ pub struct Game {
     //another subpath instead of the root install folder
     //e.g. on bethesda titles /Data/
     pub path_extension: PathBuf,
-    pub executables: Vec<Executable>
+    pub executables: Vec<Executable>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

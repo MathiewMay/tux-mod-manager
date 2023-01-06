@@ -3,7 +3,7 @@ use std::fs::OpenOptions;
 use std::io;
 use std::path::Path;
 
-use failure::{Fallible};
+use failure::Fallible;
 
 use url::{ParseError, Url};
 
@@ -36,25 +36,30 @@ pub fn decode_percent_coded_string(data: &str) -> Fallible<String> {
     Ok(String::from_utf8(decoded_bytes)?)
 }
 
-pub fn get_file_handle(filename: &str, save_path: &str, resume_download: &bool, append: &bool) -> io::Result<File> {
+pub fn get_file_handle(
+    filename: &str,
+    save_path: &str,
+    resume_download: &bool,
+    append: &bool,
+) -> io::Result<File> {
     let path = format!("{}/{}", save_path, filename);
     // println!("Save Path: {}", path);
     if *resume_download && Path::new(&path).exists() {
         if *append {
             match OpenOptions::new().append(true).open(&path) {
                 Ok(file) => Ok(file),
-                Err(error) => Err(error)
+                Err(error) => Err(error),
             }
         } else {
             match OpenOptions::new().write(true).open(&path) {
                 Ok(file) => Ok(file),
-                Err(error) => Err(error)
+                Err(error) => Err(error),
             }
         }
     } else {
         match OpenOptions::new().write(true).create(true).open(&path) {
             Ok(file) => Ok(file),
-            Err(error) => Err(error)
+            Err(error) => Err(error),
         }
     }
 }
