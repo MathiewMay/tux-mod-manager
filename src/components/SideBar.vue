@@ -20,22 +20,6 @@ export default {
         return {games}
     },
     methods: {
-        async scanGames() {
-            await invoke('scan_games', { supportedGames: supported_games }).then((entrys) => {
-                entrys.forEach(element => {
-                    let game = JSON.parse(element)
-                    // if(this.supported_games[game.appid]){
-                    this.games[game.appid] = game
-                    // }
-                })
-            })
-            this.$emit('on-scan-games')
-        },
-    
-        sendDeployMods() {
-            this.$emit('deploy-mods')
-        },
-    
         selectNewGame(e, gameEntry){
             const gameButton = e.target 
             const buttonList = this.$refs.game_ref
@@ -52,16 +36,35 @@ export default {
 
         selectSupportedGame(e){  // Same function as above, only for the games that aren't scanned yet so the selectedgame variable isn't updated with a non existant game
             const gameButton = e.target
-            const buttonList = this.$refs.game_ref
-            const secondButtonList = this.$refs.game_ref
-            buttonList.forEach(elem => {
+            if (this.$refs.game_ref) { // If there isn't any scanned games yet, don't try to update their listings
+                const buttonList = this.$refs.game_ref
+                buttonList.forEach(elem => {
                 elem.classList.remove("active");
             })
+            }
+            
+            const secondButtonList = this.$refs.supported_game_ref
             secondButtonList.forEach(elem => {
                 elem.classList.remove("active");
             })
             gameButton.classList.add("active");
-        }
+        },
+
+        async scanGames() {
+            await invoke('scan_games', { supportedGames: supported_games }).then((entrys) => {
+                entrys.forEach(element => {
+                    let game = JSON.parse(element)
+                    // if(this.supported_games[game.appid]){
+                    this.games[game.appid] = game
+                    // }
+                })
+            })
+            this.$emit('on-scan-games')
+        }, 
+    
+        sendDeployMods() {
+            this.$emit('deploy-mods')
+        },
     }
 }
 </script>
@@ -75,7 +78,7 @@ export default {
         </li>
     </div>
     <div class="not-found-list">
-        <li v-for="(game) in supported_games" v-if="!games.some(scanned_game => scanned_game.appid === game.app_id)" :key="game.appid">  <!-- TODO, fix this v-if="!game.public_name in games" so the list item disappears if it gets found in a scan-->
+        <li v-for="(game) in supported_games" v-if="!Object.keys(games).some(appid => appid === key)" :key="game.app_id" >  <!-- TODO, fix this v-if="!games.some(scanned_game => scanned_game.appid === game.app_id)" so the list item disappears if it gets found in a scan-->
             <button ref="supported_game_ref" @click="selectSupportedGame($event)">{{ game.public_name }}</button>
         </li>
     </div>
