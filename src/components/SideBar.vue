@@ -78,8 +78,8 @@ export default {
         </li>
     </div>
     <div class="not-found-list">
-        <li v-for="(game) in supported_games" v-if="!Object.keys(games).some(appid => appid === key)" :key="game.app_id" >  <!-- TODO, fix this v-if="!games.some(scanned_game => scanned_game.appid === game.app_id)" so the list item disappears if it gets found in a scan-->
-            <button ref="supported_game_ref" @click="selectSupportedGame($event)">{{ game.public_name }}</button>
+        <li v-for="(game) in supported_games" :key="game.app_id" >  <!-- TODO, fix this v-if="!games.some(scanned_game => scanned_game.appid === game.app_id)" so the list item disappears if it gets found in a scan-->
+            <button ref="supported_game_ref" v-if="!games[game.app_id]" @click="selectSupportedGame($event)">{{  game.public_name }}</button>
         </li>
     </div>
     <div class="options-bottom">
