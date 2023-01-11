@@ -53,6 +53,33 @@ pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
     game_list
 }
 
+#[tauri::command]
+pub fn scan_for_single_game(game: SupportedGame) -> Vec<String> {
+    //let debug = serde_json::to_string(&game).unwrap();
+    //println!("Got game: {}", debug); used to make sure the vue frontend was sending anything back
+
+    let supported_game = vec![game];  // make the game passed into a list to reuse the functions expecting a list
+    let game_list = match scan_for_steam_games(&supported_game) { // attempt to find a list of games based on the game info
+        Some(list) if list.len() > 0 => list,
+        Some(_) => match scan_for_other_games(&supported_game) {  // if the list length was 0 attempt the other store search
+            Some(list) => list,
+            None => {
+                eprintln!("Problem scanning Steam and other store libararies");
+                Vec::new()
+            },
+        },
+        None => match scan_for_other_games(&supported_game) {  // if there was an issue with the steam search, attempt the other store search
+            Some(list) => list,
+            None => {
+                eprintln!("Problem scanning Steam and other store libararies");
+                Vec::new() //if nothing is found, the game_list will be an empty list
+            },
+        },
+    };
+
+    game_list  //  return the game list to the Vue frontend
+}
+
 fn scan_for_steam_games(supported_games: &Vec<SupportedGame>) -> Option<Vec<String>> {
     let mut steam_games: Vec<String> = Vec::new(); //create the list, steam games will be added and then returned at the end of function
     let steam_apps: HashMap<u32, Option<SteamApp>> = find_steam_apps()?;
@@ -142,9 +169,13 @@ fn find_steam_apps() -> Option<HashMap<u32, Option<SteamApp>>> {
 
 fn scan_for_other_games(games: &Vec<SupportedGame>) -> Option<Vec<String>> {
     //scan for games another way, if no steam games were found or couldn't get steam data
+
     // TODO
-    // * improve the search using find to search common folders first leaving / root as a last resort
-    // will hopefully improve speed.
+    // * Improve the search using find to search common folders first leaving / root as a last resort
+    // will hopefully improve speed. Example: /media /mnt /run/media etc...
+    // * Another idea would to rebase the search function to instead search for a single game but multithreaded,
+    // so instead of sending a list to rust for it to go through one at a time, search for several games at once
+    // I will need to keep reading the rust book until the section on multithreading
 
     let mut game_list: Vec<String> = Vec::new(); //  create a buffer for the list
     for game in games {
@@ -154,7 +185,7 @@ fn scan_for_other_games(games: &Vec<SupportedGame>) -> Option<Vec<String>> {
             .join(format!("{}.json", game.app_id));
         let game_config_path = Path::new(&game_config_pathbuf);
 
-        if game_config_path.exists() {
+        if game_config_path.exists() {  // if the game has a config file already, read its data and return that immediately, otherwise generate the data below
             let json = fs::read_to_string(game_config_path).unwrap();
             game_list.push(json);
             continue;
@@ -163,7 +194,7 @@ fn scan_for_other_games(games: &Vec<SupportedGame>) -> Option<Vec<String>> {
         let mut game_paths: Vec<PathBuf> = Vec::new(); //  create a buffer for all paths we find
         for exec in &game.known_binaries {
             //  for each executable name we'll search for
-            let name = &exec.binary_path.file_name().unwrap().to_owned(); //  we search for the game using only the file name, ie Cyberpunk2077.exe,
+            let name = exec.binary_path.file_name().unwrap().to_owned(); //  we search for the game using only the file name, ie Cyberpunk2077.exe,
             let exec_path = match find_game(&name.to_str().unwrap()) {
                 //because the supported games json has some binary files inside a couple different folders from the game's root folder
                 Some(path) => path,
@@ -186,7 +217,7 @@ fn scan_for_other_games(games: &Vec<SupportedGame>) -> Option<Vec<String>> {
             }
         }
 
-        if game_paths.len() == 0 {  // Ran into a panic on line 198, check if nothing was found and skip to the next supported game
+        if game_paths.len() == 0 {  // Ran into a panic on let install_path, check if nothing was found and skip to the next supported game
             continue
         }
 
@@ -272,14 +303,14 @@ fn find_game(game: &str) -> Option<String> {
 
 #[tauri::command]
 pub fn get_mods(game: Game) -> Vec<String> {
-    let mut mods: Vec<String> = Vec::new();
-    for path in get_directories(&game.profile_path.join("mods")) {
-        let name = path.file_name().unwrap().to_str().unwrap().to_string();
+    let mut mods: Vec<String> = Vec::new();  
+    for path in get_directories(&game.profile_path.join("mods")) {  //for each mod found in the mod folder
+        let name = path.file_name().unwrap().to_str().unwrap().to_string();  //take the file name, and add it to the list
         let mod_struct: Mod = Mod { name };
         let mod_json: String = serde_json::to_string(&mod_struct).unwrap();
         mods.push(mod_json);
     }
-    mods.into()
+    mods
 }
 
 #[tauri::command]
@@ -354,7 +385,7 @@ mod tests {
     
 
     #[test]
-    fn test_single_game_search() -> Result<()> {
+    fn test_find_game() -> Result<()> {
         let game = "Cyberpunk2077.exe"; //I have Cyberpunk installed through GOG on my system, switch this to whatever game you want to test on your system
         let path = match find_game(&game) {
             Some(path) => path,
@@ -422,5 +453,26 @@ mod tests {
         //println!("Got result: {:#?}", map);      // only the first one in the home folder, it found both libraries with the libraryfolders() function
         Ok(())
 
+    }
+
+    #[test]
+    fn test_single_game_search() -> Result<()> {
+        let game = SupportedGame {
+            app_id: 22380,
+            public_name: String::from("Fallout: New Vegas"),
+            known_binaries: vec![ Executable {
+                name: String::from("FalloutNV"),
+                use_compatibility: true,
+                binary_path: PathBuf::from("/FalloutNV.exe"),
+                startin_path: PathBuf::from(""),
+                output_mod: String::from("overwrite"),
+            }],
+            path_extension: PathBuf::from("Data/"),
+        };
+
+        let result = scan_for_single_game(game);
+        println!("Got result: {:?}", result);
+        
+        Ok(())
     }
 }

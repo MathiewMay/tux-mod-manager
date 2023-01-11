@@ -14,6 +14,7 @@ fn main() {
             mod_manager::deploy,
             mod_manager::get_mods,
             mod_manager::remove_mod,
+            mod_manager::scan_for_single_game,
             mod_downloader::download,
         ])
         .run(tauri::generate_context!())

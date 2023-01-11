@@ -15,13 +15,10 @@ export default {
             supported_games 
         };
     },
-    setup() {
-        const games = reactive({})
-        return {games}
-    },
+    props: ['games', 'supported_game'],  // the games and supported_game variables are passed to the SideBar component
     methods: {
-        selectNewGame(e, gameEntry){
-            const gameButton = e.target 
+        selectNewGame(e, gameEntry){  // when a new game is selected, get the event info to identify which button was pressed and the game data
+            const gameButton = e.target   
             const buttonList = this.$refs.game_ref
             buttonList.forEach(elem => {
                 elem.classList.remove("active");
@@ -30,39 +27,37 @@ export default {
             secondButtonList.forEach(elem => {
                 elem.classList.remove("active");
             })
-            gameButton.classList.add("active");
-            this.$emit('on-game-selected', gameEntry)
+            gameButton.classList.add("active");             // Remove the 'active' CSS class from all the buttons not pressed
+            this.$emit('on-game-selected', gameEntry)  //  Call the newGameSelected function in App.vue passing the game data with it
         },
 
-        selectSupportedGame(e){  // Same function as above, only for the games that aren't scanned yet so the selectedgame variable isn't updated with a non existant game
+        selectSupportedGame(e, supportedGame){  // Same function as above, only for the games that aren't scanned yet
             const gameButton = e.target
             if (this.$refs.game_ref) { // If there isn't any scanned games yet, don't try to update their listings
                 const buttonList = this.$refs.game_ref
                 buttonList.forEach(elem => {
                 elem.classList.remove("active");
-            })
+                })
             }
-            
             const secondButtonList = this.$refs.supported_game_ref
             secondButtonList.forEach(elem => {
                 elem.classList.remove("active");
             })
             gameButton.classList.add("active");
+            this.$emit('on-not-found-game-selected', supportedGame)
         },
 
-        async scanGames() {
-            await invoke('scan_games', { supportedGames: supported_games }).then((entrys) => {
-                entrys.forEach(element => {
+        async scanGames() {  // when the scan games button is clicked
+            await invoke('scan_games', { supportedGames: supported_games }).then((entries) => {  // Call the rust function scan_games passing the list of supported games to it
+                entries.forEach(element => {
                     let game = JSON.parse(element)
-                    // if(this.supported_games[game.appid]){
                     this.games[game.appid] = game
-                    // }
                 })
             })
-            this.$emit('on-scan-games')
+            this.$emit('on-reset-game')
         }, 
     
-        sendDeployMods() {
+        sendDeployMods() {  // when the deploy mods button is pressed, call the deploy mods function in App.vue
             this.$emit('deploy-mods')
         },
     }
@@ -72,18 +67,19 @@ export default {
 <template>
 <div class="side-bar">
     <button class="scan-games-button" @click="scanGames()">Scan games</button>  <!-- activates the scanGames method above-->
-    <div class="game-list">
+    <div class="game-list">  <!-- List of games that were found-->
         <li v-for="(game) in games" :key="game.appid">
-            <button ref="game_ref" @click="selectNewGame($event, game)">{{game.public_name}}</button>
-        </li>
+            <button ref="game_ref" @click="selectNewGame($event, game)">{{game.public_name}}</button>  <!--    Each item on the list will send its-->
+        </li>                                                                                          <!-- game data to the select function when clicked-->
     </div>
     <div class="not-found-list">
-        <li v-for="(game) in supported_games" :key="game.app_id" >  <!-- TODO, fix this v-if="!games.some(scanned_game => scanned_game.appid === game.app_id)" so the list item disappears if it gets found in a scan-->
-            <button ref="supported_game_ref" v-if="!games[game.app_id]" @click="selectSupportedGame($event)">{{  game.public_name }}</button>
-        </li>
+        <li v-for="(game) in supported_games" :key="game.app_id" >
+            <button ref="supported_game_ref" v-if="!games[game.app_id]" @click="selectSupportedGame($event, game)">{{  game.public_name }}</button>
+        </li>  <!-- Similar to the buttons in the found list, however these get hidden if the game they're for gets found in a scan-->
     </div>
     <div class="options-bottom">
-        <button class="run-button">Run</button>
+        <!--<button class="run-button">Run</button> I don't see how the run button could be feasible,
+            we would have to run games either through steam or wine or lutris or heroic and there's just too many potential launchers imo -->
         <button class="deploy-button" @click="sendDeployMods()">Deploy</button>
     </div>
 </div>

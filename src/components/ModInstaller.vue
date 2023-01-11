@@ -25,7 +25,7 @@ export default {
         const fileName = fileFullName.split('.')[0]
         this.mods[fileName] = {name: fileName}
         invoke('uncompress', { filePath: file, fileName: fileName, game: this.selected_game}).then(()=>{
-          this.$emit('on-mod-installed', fileName)
+          this.$emit('on-mod-installed')
           delete this.mods[fileName]
         })
       })
@@ -36,7 +36,7 @@ export default {
 
 <template>
 <div class="install-mod-order">
-  <button class="install-button" @click="installMod">Install Mods</button>
+  <button class="install-button" @click="installMod()">Install Mods</button>
   <li class="install-mod-list" v-for="(mod) in mods" :key="mod">
     <Mod :selected_game="selected_game" :mod="mod" :installing="true"/>
   </li>
