@@ -56,7 +56,7 @@ pub fn scan_games(supported_games: Vec<SupportedGame>) -> Vec<String> {
 #[tauri::command]
 pub fn scan_for_single_game(game: SupportedGame) -> Vec<String> {
     //let debug = serde_json::to_string(&game).unwrap();
-    //println!("Got game: {}", debug); used to make sure the vue frontend was sending anything back
+    //println!("Got game: {}", debug); 
 
     let supported_game = vec![game];  // make the game passed into a list to reuse the functions expecting a list
     let game_list = match scan_for_steam_games(&supported_game) { // attempt to find a list of games based on the game info
@@ -84,80 +84,78 @@ fn scan_for_steam_games(supported_games: &Vec<SupportedGame>) -> Option<Vec<Stri
     let mut steam_games: Vec<String> = Vec::new(); //create the list, steam games will be added and then returned at the end of function
     let steam_apps: HashMap<u32, Option<SteamApp>> = find_steam_apps()?;
 
-    let mut supported: HashMap<u32, &SupportedGame> = HashMap::new(); //create a hashmap with steam app ids as the keys, and a SupportedGame struct value
+    //create a hashmap with steam app ids as the keys, and a SupportedGame struct value
+    
     for game in supported_games {
-        supported.insert(game.app_id, game);
-    }
+        if steam_apps.contains_key(&game.app_id) {
+            let app = steam_apps[&game.app_id].as_ref().unwrap(); //Get a reference to a SteamApp struct
+            let pathbuf_to_game_config = dirs::config_dir()?
+                .join("tmm/")
+                .join(format!("{}.json", app.appid)); // make a path with ~/.config/tmm/(The steamapp id).json for each game's config file
+            let path_to_game_config = Path::new(&pathbuf_to_game_config);
 
-    for key in steam_apps.keys() {
-        //for every steam game found on the system...
-        let app = steam_apps[key].as_ref().unwrap(); //Get a reference to a SteamApp struct
-        let pathbuf_to_game_config = dirs::config_dir()?
-            .join("tmm/")
-            .join(format!("{}.json", app.appid)); // make a path with ~/.config/tmm/(The steamapp id).json for each game's config file
-        let path_to_game_config = Path::new(&pathbuf_to_game_config);
-
-        if path_to_game_config.exists() {
-            //if the game already exists, add it's config data to the Steam Games list
-            let json = fs::read_to_string(path_to_game_config).unwrap();
-            steam_games.push(json);
-        } else if !supported.contains_key(&app.appid) {
-            //if the app id doesn't match a supported game, skip this steam app
-            continue;
-        } else {
-            let profile_path = dirs::config_dir()?
-                .join("tmm/profiles/")
-                .join(format!("{}", app.appid)); //pathbuf to the tmm config directory from before adding a profiles folder for each game
-            let components_count = app.path.components().count();
-            let work_path = app
-                .path
-                .components()
-                .take(components_count - 4)
-                .collect::<PathBuf>()
-                .join([".tmm_work/", app.appid.to_string().as_str()].join("")); //pathbuf to a .tmm_work folder 4 folders up...
-                                                                                // from the game's folder so at the same level as the whole SteamLibrary
-            let path_extension = supported.get(&app.appid).unwrap().path_extension.clone(); //get a path extension from the path_extension struct value, some games dont have one
-            let executables: Vec<Executable> =
-                supported.get(&app.appid).unwrap().known_binaries.clone();
-            let game = Game {
-                //create the game's data that will be both returned in a list of Strings and added to the game's json file
-                public_name: app.name.as_ref().unwrap().to_owned(),
-                appid: app.appid,
-                install_path: app.path.clone(),
-                profile_path,
-                work_path,
-                path_extension,
-                executables,
-            };
-            let json = serde_json::to_string(&game).unwrap();
-            match make_tmm_game_directories(game) {
-                Ok(()) => {}
-                Err(e) => {
-                    eprintln!(
-                        "Couldn't create config dirs while working on game '{}'/{}\nError: {}",
-                        app.name.as_ref().unwrap(),
-                        app.appid,
-                        e
-                    );
-                }
+            if path_to_game_config.exists() {
+                //if the game already exists, add it's config data to the Steam Games list
+                let json = fs::read_to_string(path_to_game_config).unwrap();
+                steam_games.push(json);
+            } else {
+                build_steam_config(app, game, pathbuf_to_game_config, &mut steam_games)?;
             }
-            match fs::write(&pathbuf_to_game_config, &json) {
-                //  Write the contents of the game struct to the game's json file inside the config folder
-                Ok(()) => {}
-                Err(e) => {
-                    eprintln!(
-                        "Couldn't write to config file for game '{}'/{}\nError: {}",
-                        app.name.as_ref().unwrap(),
-                        app.appid,
-                        e
-                    );
-                }
-            }
-            steam_games.push(json);
         }
     }
 
     Some(steam_games)
+}
+
+fn build_steam_config(app: &SteamApp, game: &SupportedGame, pathbuf_to_game_config: PathBuf, steam_games: &mut Vec<String>) -> Option<()> {
+    let profile_path = dirs::config_dir()?
+        .join("tmm/profiles/")
+        .join(format!("{}", app.appid));
+    let components_count = app.path.components().count();
+    let work_path = app
+        .path
+        .components()
+        .take(components_count - 4)
+        .collect::<PathBuf>()
+        .join([".tmm_work/", app.appid.to_string().as_str()].join("")); // The work path is 4 directories up from the game's root, should be the same level as the SteamLibrary
+    let path_extension = game.path_extension.clone();
+    let executables: Vec<Executable> = game.known_binaries.clone();
+    let game_struct = Game {
+        //create the game's data that will be both returned in a list of Strings and added to the game's json file
+        public_name: app.name.as_ref().unwrap().to_owned(),
+        appid: app.appid,
+        install_path: app.path.clone(),
+        profile_path,
+        work_path,
+        path_extension,
+        executables,
+    };
+    let json = serde_json::to_string(&game_struct).unwrap();
+    match make_tmm_game_directories(game_struct) {
+        Ok(()) => {}
+        Err(e) => {
+            eprintln!(
+                "Couldn't create config dirs while working on game '{}'/{}\nError: {}",
+                app.name.as_ref().unwrap(),
+                app.appid,
+                e
+            );
+        }
+    }
+    match fs::write(&pathbuf_to_game_config, &json) {
+        //  Write the contents of the game struct to the game's json file inside the config folder
+        Ok(()) => {}
+        Err(e) => {
+            eprintln!(
+                "Couldn't write to config file for game '{}'/{}\nError: {}",
+                app.name.as_ref().unwrap(),
+                app.appid,
+                e
+            );
+        }
+    }
+    steam_games.push(json);
+    Some(())
 }
 
 fn find_steam_apps() -> Option<HashMap<u32, Option<SteamApp>>> {
@@ -458,16 +456,16 @@ mod tests {
     #[test]
     fn test_single_game_search() -> Result<()> {
         let game = SupportedGame {
-            app_id: 22380,
-            public_name: String::from("Fallout: New Vegas"),
-            known_binaries: vec![ Executable {
-                name: String::from("FalloutNV"),
+            app_id: 1091500,
+            public_name: String::from("Cyberpunk 2077"),
+            known_binaries: vec![Executable {
+                name: String::from("Cyberpunk2077"),
                 use_compatibility: true,
-                binary_path: PathBuf::from("/FalloutNV.exe"),
+                binary_path: PathBuf::from("/bin/x64/Cyberpunk2077.exe"),
                 startin_path: PathBuf::from(""),
                 output_mod: String::from("overwrite"),
             }],
-            path_extension: PathBuf::from("Data/"),
+            path_extension: PathBuf::from(""),
         };
 
         let result = scan_for_single_game(game);
