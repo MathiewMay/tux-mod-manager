@@ -1,10 +1,10 @@
-pub mod utils;
-pub mod download;
 pub mod core;
+pub mod download;
+pub mod utils;
 
 use tokio::runtime::Handle;
 
-use tauri::{ Window };
+use tauri::Window;
 
 use crate::mod_manager::game::Game;
 
@@ -20,14 +20,17 @@ pub async fn download(url: String, game: Game, window: Window) {
         let save_path = game.profile_path.join("downloads").clone();
         let parsed_url;
         match utils::parse_url(url.as_str()) {
-            Ok(url) => { parsed_url = url },
+            Ok(url) => parsed_url = url,
             Err(e) => {
-                eprintln!("Something went wrong while trying to parse the url: '{}' Error message: {}", url, e);
+                eprintln!(
+                    "Something went wrong while trying to parse the url: '{}' Error message: {}",
+                    url, e
+                );
                 return;
             }
         }
         match download::http_download(parsed_url, save_path, window, false, true, "0.1.0") {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 eprintln!("Something went wrong while downloading: {}", e);
             }
