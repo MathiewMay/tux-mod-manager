@@ -46,3 +46,18 @@ Run dev environment
 ```
 npm run tauri dev
 ```
+
+## Dependancies
+
+Rust v.1.66.1+ (https://www.rust-lang.org/tools/install)
+
+### Ubuntu
+```
+sudo apt install npm libdbus-1-dev pkg-config libpango1.0-dev librust-gdk-dev libjavascriptcoregtk-4.0-dev libarchive-dev libsoup2.4-dev libwebkit2gtk-4.0-dev
+```
+
+### Fedora/Red Hat (NOT COMPLETE I don't have a Fedora system right now)
+
+```
+sudo dnf install dbus-devel pkgconf-pkg-config
+```
